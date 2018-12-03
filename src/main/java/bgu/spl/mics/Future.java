@@ -15,6 +15,7 @@ public class Future<T> {
 	 * This should be the the only public constructor in this class.
 	 */
 	public Future() {
+		int a=5;
 		//TODO: implement this
 	}
 	
