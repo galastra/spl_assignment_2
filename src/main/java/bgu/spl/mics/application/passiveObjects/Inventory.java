@@ -1,6 +1,14 @@
 package bgu.spl.mics.application.passiveObjects;
 
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Passive data-object representing the store inventory.
@@ -13,13 +21,26 @@ package bgu.spl.mics.application.passiveObjects;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class Inventory {
+	private static volatile Inventory instance = null; //galastra: volatile=נדיף
+	private List<BookInventoryInfo> info;
+	private static Object mutex = new Object();
+
+	public Inventory(){}
 
 	/**
      * Retrieves the single instance of this class.
      */
 	public static Inventory getInstance() {
-		//TODO: Implement this
-		return null;
+		Inventory result = instance;
+		if (result == null){
+			synchronized (mutex){
+				result  = instance;
+				if (result == null){
+					instance = result = new Inventory();
+				}
+			}
+		}
+		return result;
 	}
 	
 	/**
@@ -30,7 +51,9 @@ public class Inventory {
      * 						of the inventory.
      */
 	public void load (BookInventoryInfo[ ] inventory ) {
-		
+		for(int i=0;i<inventory.length;i++) {
+			info.add(inventory[i]);
+		}
 	}
 	
 	/**
@@ -42,8 +65,13 @@ public class Inventory {
      * 			second should reduce by one the number of books of the desired type.
      */
 	public OrderResult take (String book) {
-		
-		return null;
+		if (info.size()>0) {
+			for (BookInventoryInfo bookInventoryInfo : info) {
+				if (bookInventoryInfo.getBookTitle().equals(book))
+					return OrderResult.SUCCESSFULLY_TAKEN;
+			}
+		}
+		return OrderResult.NOT_IN_STOCK;
 	}
 	
 	
@@ -55,8 +83,14 @@ public class Inventory {
      * @return the price of the book if it is available, -1 otherwise.
      */
 	public int checkAvailabiltyAndGetPrice(String book) {
-		//TODO: Implement this
+		if (info.size()>0) {
+			for (BookInventoryInfo bookInventoryInfo : info) {
+				if (bookInventoryInfo.getBookTitle().equals(book))
+					return bookInventoryInfo.getPrice();
+			}
+		}
 		return -1;
+
 	}
 	
 	/**
@@ -68,6 +102,13 @@ public class Inventory {
      * This method is called by the main method in order to generate the output.
      */
 	public void printInventoryToFile(String filename){
-		//TODO: Implement this
+		ConcurrentHashMap<String,Integer> printMap = new ConcurrentHashMap<>();
+		File file = new File(filename);
+		for (BookInventoryInfo bookInventoryInfo : info) {
+			printMap.put(bookInventoryInfo.getBookTitle(),bookInventoryInfo.getPrice());
+		}
+		synchronized (file){
+			//TODO: write to the file **without overwriting it
+		}
 	}
 }

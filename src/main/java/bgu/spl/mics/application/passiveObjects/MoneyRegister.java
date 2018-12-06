@@ -1,6 +1,9 @@
 package bgu.spl.mics.application.passiveObjects;
 
 
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Passive object representing the store finance management. 
@@ -12,13 +15,24 @@ package bgu.spl.mics.application.passiveObjects;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class MoneyRegister {
-	
+	private static volatile MoneyRegister instance = null;
+	private static Object mutex = new Object();
+	private List<OrderReceipt> receiptList;
+
 	/**
      * Retrieves the single instance of this class.
      */
 	public static MoneyRegister getInstance() {
-		//TODO: Implement this
-		return null;
+		MoneyRegister result = instance;
+		if (result == null){
+			synchronized (mutex){
+				result = instance;
+				if (result == null){
+					instance = result = new MoneyRegister();
+				}
+			}
+		}
+		return result;
 	}
 	
 	/**
@@ -27,15 +41,18 @@ public class MoneyRegister {
      * @param r		The receipt to save in the money register.
      */
 	public void file (OrderReceipt r) {
-		//TODO: Implement this.
+		receiptList.add(r);
 	}
 	
 	/**
      * Retrieves the current total earnings of the store.  
      */
 	public int getTotalEarnings() {
-		//TODO: Implement this
-		return 0;
+		int sum=0;
+		for (OrderReceipt receipt : receiptList){
+			sum+=receipt.getPrice();
+		}
+		return sum;
 	}
 	
 	/**
@@ -44,7 +61,10 @@ public class MoneyRegister {
      * @param amount 	amount to charge
      */
 	public void chargeCreditCard(Customer c, int amount) {
-		// TODO Implement this
+		for(OrderReceipt orderReceipt : receiptList){
+			if (orderReceipt.getCustomerId() == c.getId())
+				c.chargeCredit(amount);
+		}
 	}
 	
 	/**
@@ -53,6 +73,9 @@ public class MoneyRegister {
      * This method is called by the main method in order to generate the output.. 
      */
 	public void printOrderReceipts(String filename) {
-		//TODO: Implement this
+		File file = new File(filename);
+		synchronized (file) {
+			//TODO: Implement this
+		}
 	}
 }

@@ -12,13 +12,23 @@ import bgu.spl.mics.Future;
  * You can add ONLY private methods and fields to this class.
  */
 public class ResourcesHolder {
+	private static volatile ResourcesHolder instance = null;
+	private static Object mutex = new Object();
 	
 	/**
      * Retrieves the single instance of this class.
      */
 	public static ResourcesHolder getInstance() {
-		//TODO: Implement this
-		return null;
+		ResourcesHolder result = instance;
+		if (result == null){
+			synchronized (mutex){
+				result = instance;
+				if (result == null){
+					instance = result = new ResourcesHolder();
+				}
+			}
+		}
+		return result;
 	}
 	
 	/**
