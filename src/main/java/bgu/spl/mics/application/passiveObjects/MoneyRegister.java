@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MoneyRegister {
 	private static volatile MoneyRegister instance = null;
 	private static Object mutex = new Object();
-	private List<OrderReceipt> receiptList;
+	private static List<OrderReceipt> receiptList;
 
 	/**
      * Retrieves the single instance of this class.
