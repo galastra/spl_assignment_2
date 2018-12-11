@@ -15,7 +15,7 @@ import bgu.spl.mics.MicroService;
 public class TimeService extends MicroService{
 
 	public TimeService() {
-		super("Change_This_Name");
+		super("Time Service");
 		// TODO Implement this
 	}
 

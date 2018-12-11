@@ -1,5 +1,7 @@
 package bgu.spl.mics;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 /**
  * The message-bus is a shared object used for communication between
  * micro-services.

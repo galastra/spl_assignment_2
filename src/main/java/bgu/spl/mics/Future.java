@@ -17,6 +17,7 @@ public class Future<T> {
 	 * This should be the the only public constructor in this class.
 	 */
 	public Future() {
+		obj = null;
 		_isdone = false;
 
 	}
@@ -31,7 +32,7 @@ public class Future<T> {
      */
 	public T get() {
 		try {
-			while (!_isdone) this.wait();
+			while (!_isdone) this.wait();//NOT GOOD, should use semaphore
 		} catch (InterruptedException e){
 			System.out.println("got Interrupted");
 		}
@@ -67,11 +68,10 @@ public class Future<T> {
      */
 	public T get(long timeout, TimeUnit unit) {
 		try {
-			while (!_isdone) unit.sleep(timeout);
+			if (!_isdone) unit.sleep(timeout);
 		} catch (InterruptedException e){
 			System.out.println("got Interrupted");
 		}
-		this.notifyAll();
 		return obj;
 	}
 
