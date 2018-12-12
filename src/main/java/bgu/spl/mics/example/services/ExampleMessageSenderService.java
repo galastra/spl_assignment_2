@@ -31,7 +31,7 @@ public class ExampleMessageSenderService extends MicroService {
         } else {
             Future<String> futureObject = (Future<String>)sendEvent(new ExampleEvent(getName()));
             if (futureObject != null) {
-            	String resolved = futureObject.get(100, TimeUnit.MILLISECONDS);
+            	String resolved = futureObject.get(10,TimeUnit.SECONDS);
             	if (resolved != null) {
             		System.out.println("Completed processing the event, its result is \"" + resolved + "\" - success");
             	}

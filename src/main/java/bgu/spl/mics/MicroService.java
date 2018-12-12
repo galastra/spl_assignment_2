@@ -35,7 +35,8 @@ public abstract class MicroService implements Runnable {
      */
     public MicroService(String name) {
         this.name = name;
-        (new MessageBusImpl()).register(this);
+        (MessageBusImpl.getInstance()).register(this);
+        callbacks = new ConcurrentHashMap<>();
     }
 
     /**
@@ -102,7 +103,7 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        Future<T> future = (new MessageBusImpl()).sendEvent(e);
+        Future<T> future = (MessageBusImpl.getInstance()).sendEvent(e);
         return future;
     }
 
@@ -159,12 +160,18 @@ public abstract class MicroService implements Runnable {
     public final void run() {
         initialize();
         MessageBusImpl bus = MessageBusImpl.getInstance();
-        Message msg;
+        Message msg=null;
         while (!terminated) {
             try {
-               msg= bus.awaitMessage(this);
-               callbacks.get(msg.getClass()).call(msg);
-            }catch (Exception e){}
+               msg= (MessageBusImpl.getInstance()).awaitMessage(this);
+               Callback callback = callbacks.get(msg.getClass());
+               callback.call(msg);
+               //callbacks.get(msg.getClass()).call(msg);
+               System.out.println("called callback1");
+            }catch (Exception e){
+            }
+
+
         }
         bus.unregister(this);
     }

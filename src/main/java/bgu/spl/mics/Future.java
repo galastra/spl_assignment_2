@@ -31,13 +31,19 @@ public class Future<T> {
      *
      */
 	public T get() {
-		try {
-			while (!_isdone) this.wait();//NOT GOOD, should use semaphore
-		} catch (InterruptedException e){
-			System.out.println("got Interrupted");
+		synchronized (this) {
+			try {
+				while (!_isdone) {
+					System.out.println("stil waiting...");
+					this.wait();
+				}
+			} catch (InterruptedException e) {
+				System.out.println("got Interrupted");
+			}
+			this.notifyAll();
 		}
-		this.notifyAll();
-		return obj;
+			return obj;
+
 	}
 	
 	/**
@@ -46,6 +52,13 @@ public class Future<T> {
 	public void resolve (T result) {
 		obj = result;
 		_isdone = true;
+		/*
+		synchronized (obj){
+			try {
+				this.notifyAll();
+			}catch (Exception e){}
+		}
+		*/
 	}
 	
 	/**

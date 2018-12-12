@@ -4,8 +4,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 
 /**
  * The {@link MessageBusImpl class is the implementation of the MessageBus interface.
@@ -13,9 +12,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Only private fields and methods can be added to this class.
  */
 public class MessageBusImpl implements MessageBus {
-	private static ConcurrentHashMap<MicroService,ConcurrentLinkedQueue<Message>> microServices = new ConcurrentHashMap<>();
-	private ConcurrentHashMap<Class<? extends Message>, ConcurrentLinkedQueue<MicroService>> handleMessages;
-	private ConcurrentHashMap<Event,Future> futures;
+	private static ConcurrentHashMap<MicroService, BlockingQueue<Message>> microServices = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<Class<? extends Message>, ConcurrentLinkedQueue<MicroService>> handleMessages = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<Event,Future> futures = new ConcurrentHashMap<>();
 
 	private static volatile MessageBusImpl instance = null; //galastra: volatile=נדיף
 	private static Object mutex = new Object();
@@ -83,10 +82,13 @@ public class MessageBusImpl implements MessageBus {
 			microServices.get(service).add(b);
 		}
 
+
 	}
 	
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
+		if (!handleMessages.containsKey(e.getClass()))
+			return null;
 		synchronized (this) {
 			ConcurrentLinkedQueue<MicroService> roundRobin = handleMessages.get(e.getClass());
 			MicroService tmpMS = roundRobin.poll();
@@ -95,12 +97,13 @@ public class MessageBusImpl implements MessageBus {
 		}
 		Future<T> tmpFuture = new Future<>();
 		futures.put(e,tmpFuture);
+
 		return tmpFuture;
 	}
 
 	@Override
 	public void register(MicroService m) {
-		ConcurrentLinkedQueue<Message> tmp = new ConcurrentLinkedQueue<>();
+		BlockingQueue<Message> tmp = new LinkedBlockingQueue<Message>();
 		microServices.put(m,tmp);
 
 	}
@@ -119,12 +122,18 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		try {
-			while (microServices.get(m).isEmpty()) m.wait();
-		} catch (InterruptedException e){
-			System.out.println("got Interrupted");
+		//BlockingQueue<Message> temp=microServices.get(m);
+
+		/*
+		synchronized (this) {
+			while (temp.isEmpty()) {
+				this.wait();
+			}
+			//this.notifyAll();
 		}
-		return microServices.get(m).poll();
+		*/
+		Message msg = microServices.get(m).take();
+		return msg;
 
 	}
 
