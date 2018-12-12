@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Inventory {
 	private static volatile Inventory instance = null; //galastra: volatile=נדיף
-	private List<BookInventoryInfo> info;
+	private static List<BookInventoryInfo> info;
 	private static Object mutex = new Object();
 
 	public Inventory(){}

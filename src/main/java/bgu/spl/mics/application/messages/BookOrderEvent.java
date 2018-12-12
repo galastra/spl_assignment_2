@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.messages;
 
 import bgu.spl.mics.Event;
+import bgu.spl.mics.application.passiveObjects.Customer;
 
 /**
  * An Event that is sent when a client of the store wishes to buy a book. Its expected response type is an OrderReceipt.
@@ -14,9 +15,14 @@ import bgu.spl.mics.Event;
 
 public class BookOrderEvent implements Event<String>{
     private String bookTitle;
+    private Customer customer;
 
-    public BookOrderEvent(String _bookTitle){
+    public BookOrderEvent(String _bookTitle,Customer _customer){
         bookTitle = _bookTitle;
+        customer = _customer;
     }
+
+    public String getBookTitle(){return bookTitle;}
+    public Customer getCustomer(){return customer;}
 
 }

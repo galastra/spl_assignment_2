@@ -52,13 +52,14 @@ public class Future<T> {
 	public void resolve (T result) {
 		obj = result;
 		_isdone = true;
-		/*
-		synchronized (obj){
+		synchronized (this){
 			try {
-				this.notifyAll();
-			}catch (Exception e){}
+				this.notify();
+			}catch (Exception e){
+				System.out.println("got caught in resolve "+e.getMessage());
+			}
 		}
-		*/
+
 	}
 	
 	/**

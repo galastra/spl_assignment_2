@@ -72,14 +72,18 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
+		if (!futures.containsKey(e))
+			System.out.println("futures has no such event");
 		futures.get(e).resolve(result);
 
 	}
 
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		for (MicroService service : handleMessages.get(b.getClass())){
-			microServices.get(service).add(b);
+		if (handleMessages.containsKey(b.getClass()) && !handleMessages.get(b.getClass()).isEmpty()) {
+			for (MicroService service : handleMessages.get(b.getClass())) {
+				microServices.get(service).add(b);
+			}
 		}
 
 
@@ -87,17 +91,16 @@ public class MessageBusImpl implements MessageBus {
 	
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		if (!handleMessages.containsKey(e.getClass()))
+		if (!handleMessages.containsKey(e.getClass()) || handleMessages.get(e.getClass()).isEmpty())
 			return null;
+		Future<T> tmpFuture = new Future<>();
 		synchronized (this) {
 			ConcurrentLinkedQueue<MicroService> roundRobin = handleMessages.get(e.getClass());
 			MicroService tmpMS = roundRobin.poll();
 			roundRobin.add(tmpMS);
+			futures.put(e, tmpFuture);
 			microServices.get(tmpMS).add(e);
 		}
-		Future<T> tmpFuture = new Future<>();
-		futures.put(e,tmpFuture);
-
 		return tmpFuture;
 	}
 
@@ -110,7 +113,7 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void unregister(MicroService m) {
-		if (microServices.contains(m)) {
+		if (microServices.containsKey(m)) {
 			microServices.remove(m);
 			for (ConcurrentHashMap.Entry<Class<? extends Message>,ConcurrentLinkedQueue<MicroService>> entry : handleMessages.entrySet()){ //removes m from the handleMessages
 				ConcurrentLinkedQueue<MicroService> tmpQueue = entry.getValue();

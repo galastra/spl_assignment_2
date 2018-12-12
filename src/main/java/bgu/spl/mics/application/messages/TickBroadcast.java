@@ -7,5 +7,9 @@ import bgu.spl.mics.Broadcast;
  * This message must contain the current tick(int).
  */
 public class TickBroadcast implements Broadcast{
-    private static int curr_tick;
+    private int curr_tick;
+
+    public int getCurr_tick(){
+        return curr_tick;
+    }
 }
