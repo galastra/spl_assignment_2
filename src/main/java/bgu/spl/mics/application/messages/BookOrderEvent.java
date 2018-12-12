@@ -2,6 +2,7 @@ package bgu.spl.mics.application.messages;
 
 import bgu.spl.mics.Event;
 import bgu.spl.mics.application.passiveObjects.Customer;
+import bgu.spl.mics.application.passiveObjects.OrderResult;
 
 /**
  * An Event that is sent when a client of the store wishes to buy a book. Its expected response type is an OrderReceipt.
@@ -13,7 +14,7 @@ import bgu.spl.mics.application.passiveObjects.Customer;
  * The event is sent to a SellingService to handle it.
  */
 
-public class BookOrderEvent implements Event<String>{
+public class BookOrderEvent implements Event<OrderResult>{
     private String bookTitle;
     private Customer customer;
 

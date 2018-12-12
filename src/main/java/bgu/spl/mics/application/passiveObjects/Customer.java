@@ -77,7 +77,9 @@ public class Customer {
 	 * @param amount the amount
 	 */
 	public void chargeCredit(int amount){
-		_available_amount_credit_card-=amount;
+		synchronized (this) {
+			_available_amount_credit_card -= amount;
+		}
 	}
 	
 }

@@ -2,8 +2,7 @@ package bgu.spl.mics.application.passiveObjects;
 
 
 import java.io.File;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Passive object representing the store finance management. 
@@ -17,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MoneyRegister {
 	private static volatile MoneyRegister instance = null;
 	private static Object mutex = new Object();
-	private static List<OrderReceipt> receiptList;
+	private static ConcurrentLinkedQueue<OrderReceipt> receiptList = new ConcurrentLinkedQueue<>();
 
 	/**
      * Retrieves the single instance of this class.
@@ -48,11 +47,13 @@ public class MoneyRegister {
      * Retrieves the current total earnings of the store.  
      */
 	public int getTotalEarnings() {
-		int sum=0;
-		for (OrderReceipt receipt : receiptList){
-			sum+=receipt.getPrice();
+		synchronized (this) {
+			int sum = 0;
+			for (OrderReceipt receipt : receiptList) {
+				sum += receipt.getPrice();
+			}
+			return sum;
 		}
-		return sum;
 	}
 	
 	/**
