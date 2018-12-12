@@ -9,6 +9,8 @@ import bgu.spl.mics.Broadcast;
 public class TickBroadcast implements Broadcast{
     private int curr_tick;
 
+    public TickBroadcast(int _curr_tick){curr_tick = _curr_tick;}
+
     public int getCurr_tick(){
         return curr_tick;
     }
