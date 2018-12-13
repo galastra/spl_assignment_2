@@ -2,6 +2,7 @@ package bgu.spl.mics.application.messages;
 
 import bgu.spl.mics.Event;
 import bgu.spl.mics.application.passiveObjects.Customer;
+import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 import bgu.spl.mics.application.passiveObjects.OrderResult;
 
 /**
@@ -14,16 +15,24 @@ import bgu.spl.mics.application.passiveObjects.OrderResult;
  * The event is sent to a SellingService to handle it.
  */
 
-public class BookOrderEvent implements Event<OrderResult>{
+public class BookOrderEvent implements Event<OrderReceipt>{
     private String bookTitle;
     private Customer customer;
+    private int tick;
+    private int orderId;
 
-    public BookOrderEvent(String _bookTitle,Customer _customer){
+    public BookOrderEvent(String _bookTitle,Customer _customer,int _tick,int _orderId){
         bookTitle = _bookTitle;
         customer = _customer;
+        tick = _tick;
+        orderId = _orderId;
     }
 
     public String getBookTitle(){return bookTitle;}
     public Customer getCustomer(){return customer;}
+    public int getTick(){return tick;}
 
+    public int getOrderId() {
+        return orderId;
+    }
 }

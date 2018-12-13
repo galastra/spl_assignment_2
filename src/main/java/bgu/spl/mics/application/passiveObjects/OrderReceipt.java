@@ -17,6 +17,17 @@ public class OrderReceipt {
 	private int _issued_tick;
 	private int _order_tick;
 	private int process_tick;
+
+	public OrderReceipt(int _orderid,String _seller,int _customer,String _book_title, int _price,int _issued_tick,int _order_tick,int process_tick){
+		this._orderid = _orderid;
+		this._seller = _seller;
+		this._customer = _customer;
+		this._book_title = _book_title;
+		this._price = _price;
+		this._issued_tick = _issued_tick;
+		this._order_tick = _order_tick;
+		this.process_tick = process_tick;
+	}
 	
 	/**
      * Retrieves the orderId of this receipt.

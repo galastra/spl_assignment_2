@@ -4,8 +4,11 @@ import bgu.spl.mics.Callback;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CheckAvailableEvent;
+import bgu.spl.mics.application.messages.TakeBookEvent;
+import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
 import bgu.spl.mics.application.messages.BookOrderEvent;
+import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 import bgu.spl.mics.application.passiveObjects.OrderResult;
 
 /**
@@ -20,6 +23,7 @@ import bgu.spl.mics.application.passiveObjects.OrderResult;
  */
 public class SellingService extends MicroService{
 	private MoneyRegister moneyRegister;
+	private int curr_tick;
 
 	public SellingService() {
 		super("Selling Service");
@@ -29,24 +33,49 @@ public class SellingService extends MicroService{
 	@Override
 	protected void initialize() {
 		System.out.println("Selling Service "+getName()+" started");
+		curr_tick = 1;
+
+		subscribeBroadcast(TickBroadcast.class,broad->{
+			curr_tick = broad.getCurr_tick();
+		});
+
 		subscribeEvent(BookOrderEvent.class, ev-> {
-			Future<OrderResult> futureObject = (Future<OrderResult>) sendEvent(
+			Future<Integer> futureBookPrice = (Future<Integer>) sendEvent(
 					new CheckAvailableEvent(ev.getBookTitle()));
-			if (futureObject == null)
+			if (futureBookPrice == null)
 				System.out.println("No Micro-Service has registered to handle CheckAvailableEvent events! The event cannot be processed");
 			else {
-				OrderResult result = futureObject.get();
+				Integer priceResult = futureBookPrice.get(); //get the price from the InventoryService
 
-				switch (result) {
-					case SUCCESSFULLY_TAKEN:
-						complete(ev, OrderResult.SUCCESSFULLY_TAKEN);
-						//TODO: figure out whether the SellingService should sendEvent to ResourceService
-						// or it's InventoryService who should do it.
-						break;
+				if (priceResult==-1 || ev.getCustomer().getAvailableCreditAmount()<priceResult){
+					complete(ev,null);
+				}
+				else{
+					int orderid = ev.getOrderId();
+					String seller = "Store"; //TODO: figure out what should be here
+					int customer = ev.getCustomer().getId();
+					String bookTitle = ev.getBookTitle();
+					int price = priceResult;
+					int issuedTick = 0; //TODO: what is this
+					int orderTick = ev.getTick();
+					int processTick = curr_tick; //TODO: what is this
+					OrderReceipt receipt = new OrderReceipt(orderid,seller,customer,bookTitle,price,issuedTick,orderTick,processTick);
 
-					case NOT_IN_STOCK:
-						complete(ev, OrderResult.NOT_IN_STOCK);//perhaps BookOrderEvent shouldn't be Event<OrderResult>
-						break;
+					Future<OrderResult> futureOrderResult = (Future<OrderResult>)sendEvent(new TakeBookEvent(bookTitle));
+					if (futureOrderResult == null){
+						System.out.println("No Micro-Service has registered to handle TakeBookEvent events! The event cannot be processed");
+					}
+					else{
+						OrderResult orderResult = futureOrderResult.get();
+
+						if (orderResult == OrderResult.SUCCESSFULLY_TAKEN){
+							moneyRegister.chargeCreditCard(ev.getCustomer(),priceResult);
+							complete(ev,receipt);
+						}
+						else
+							complete(ev,null);
+					}
+
 				}
 			}
 
