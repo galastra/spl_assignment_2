@@ -2,6 +2,7 @@ package bgu.spl.mics.application.passiveObjects;
 
 import bgu.spl.mics.Future;
 
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -16,8 +17,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ResourcesHolder {
 	private static volatile ResourcesHolder instance = null;
 	private static Object mutex = new Object();
+
 	private ConcurrentLinkedQueue<DeliveryVehicle> freeVehicles=new ConcurrentLinkedQueue<>();
-	private ConcurrentLinkedQueue<Future<DeliveryVehicle>> futuresWithOutVehicles=new ConcurrentLinkedQueue<>();
+	private ConcurrentLinkedQueue<Future<DeliveryVehicle>> futuresWithoutVehicles=new ConcurrentLinkedQueue<>();
 
 	/**
 	 * Retrieves the single instance of this class.
@@ -46,12 +48,13 @@ public class ResourcesHolder {
 	 * 			{@link DeliveryVehicle} when completed.
 	 */
 	public Future<DeliveryVehicle> acquireVehicle() {
-		Future<DeliveryVehicle> temp=new Future<>();
-		if(freeVehicles.isEmpty())
-			futuresWithOutVehicles.add(temp);
-		else
-			temp.resolve(freeVehicles.poll());
-		return temp;
+		Future<DeliveryVehicle> tempFuture=new Future<>();
+		synchronized (this) {
+			if (freeVehicles.isEmpty())
+				futuresWithoutVehicles.add(tempFuture);
+			else
+				tempFuture.resolve(freeVehicles.poll());
+		}return tempFuture;
 	}
 
 	/**
@@ -66,8 +69,8 @@ public class ResourcesHolder {
 	}
 
 	private void checkIfNeededAndProvide(){
-		if(!futuresWithOutVehicles.isEmpty() & !freeVehicles.isEmpty())
-			futuresWithOutVehicles.poll().resolve(freeVehicles.poll());
+		if(!futuresWithoutVehicles.isEmpty() & !freeVehicles.isEmpty())
+			futuresWithoutVehicles.poll().resolve(freeVehicles.poll());
 	}
 
 	/**
@@ -76,9 +79,7 @@ public class ResourcesHolder {
 	 * @param vehicles	Array of {@link DeliveryVehicle} instances to store.
 	 */
 	public void load(DeliveryVehicle[] vehicles) {
-		for (DeliveryVehicle temp:vehicles) {
-			freeVehicles.add(temp);
-		}
+		freeVehicles.addAll(Arrays.asList(vehicles));
 	}
 
 }

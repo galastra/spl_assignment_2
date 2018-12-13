@@ -26,8 +26,8 @@ public class LogisticsService extends MicroService {
 	@Override
 	protected void initialize() {
 		subscribeEvent(DeliveryEvent.class,ev->{
-			Future<Future<DeliveryVehicle>> temp=sendEvent(new AcquireVehicleEvent());
-			DeliveryVehicle deliveryVehicle=temp.get().get();
+			Future<Future<DeliveryVehicle>> futureDeliveryVehicle=sendEvent(new AcquireVehicleEvent());
+			DeliveryVehicle deliveryVehicle = futureDeliveryVehicle.get().get();
 			deliveryVehicle.deliver(ev.getAddress(),ev.getDistance());
 			sendBroadcast(new ReleaseVehicleBroadcast(deliveryVehicle));
 		});

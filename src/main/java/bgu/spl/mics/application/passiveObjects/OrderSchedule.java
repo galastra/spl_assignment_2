@@ -1,25 +1,28 @@
 package bgu.spl.mics.application.passiveObjects;
 
 public class OrderSchedule {
-    private String BookTitle;
-    private int Tick;
-    private int OrderId;
+    private String bookTitle;
+    private int tick;
+    private int orderId;
 
     public OrderSchedule(String _BookTitle,int _Tick,int _orderId){
-        this.BookTitle=_BookTitle;
-        this.Tick=_Tick;
-        this.OrderId=_orderId;
+        this.bookTitle=_BookTitle;
+        this.tick=_Tick;
+        this.orderId=_orderId;
     }
 
     public int getTick() {
-        return Tick;
+        return tick;
     }
 
     public String getBookTitle() {
-        return BookTitle;
+        return bookTitle;
     }
 
     public int getOrderId() {
-        return OrderId;
+        return orderId;
+    }
+    public void setOrderId(int value){
+        orderId = value;
     }
 }

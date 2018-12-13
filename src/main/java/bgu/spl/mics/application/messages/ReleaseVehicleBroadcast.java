@@ -7,7 +7,7 @@ public class ReleaseVehicleBroadcast implements Broadcast {
     private DeliveryVehicle vehicle;
 
     public ReleaseVehicleBroadcast(DeliveryVehicle _vehicle){
-        this.vehicle=_vehicle;
+        vehicle=_vehicle;
     }
 
     public DeliveryVehicle getVehicle() {

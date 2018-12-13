@@ -52,9 +52,9 @@ public class TimeService extends MicroService{
 		TimerTask timerTask = new TimerTask() {
 			@Override
 			public void run() {
-				System.out.println("sending tick "+tick.intValue());
+				System.out.println("sending tick "+tick.get());
 				sendBroadcast(new TickBroadcast(tick.getAndIncrement()));
-				if (tick.compareAndSet(duration,tick.intValue())){
+				if (tick.compareAndSet(duration,tick.get())){
 					timer.cancel();
 					terminate();
 				}
