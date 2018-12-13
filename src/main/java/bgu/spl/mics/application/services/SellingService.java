@@ -1,6 +1,5 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.Callback;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CheckAvailableEvent;
@@ -48,9 +47,11 @@ public class SellingService extends MicroService{
 				Integer priceResult = futureBookPrice.get(); //get the price from the InventoryService
 
 				if (priceResult==-1 || ev.getCustomer().getAvailableCreditAmount()<priceResult){
+				    System.out.println("not enough money or the book does not exist");
 					complete(ev,null);
 				}
 				else{
+				    //Building the Receipt
 					int orderid = ev.getOrderId();
 					String seller = "Store"; //TODO: figure out what should be here
 					int customer = ev.getCustomer().getId();
@@ -60,6 +61,7 @@ public class SellingService extends MicroService{
 					int orderTick = ev.getTick();
 					int processTick = curr_tick; //TODO: what is this
 					OrderReceipt receipt = new OrderReceipt(orderid,seller,customer,bookTitle,price,issuedTick,orderTick,processTick);
+                    //
 
 					Future<OrderResult> futureOrderResult = (Future<OrderResult>)sendEvent(new TakeBookEvent(bookTitle));
 					if (futureOrderResult == null){
@@ -72,8 +74,10 @@ public class SellingService extends MicroService{
 							moneyRegister.chargeCreditCard(ev.getCustomer(),priceResult);
 							complete(ev,receipt);
 						}
-						else
-							complete(ev,null);
+						else {
+                            complete(ev, null);
+                            System.out.println("SellingService tried to get the book but in the meanwhile it has been taken by someone else");
+                        }
 					}
 
 				}

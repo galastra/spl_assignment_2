@@ -67,8 +67,10 @@ public class Inventory {
 	public OrderResult take (String book) {
 		if (info.size()>0) {
 			for (BookInventoryInfo bookInventoryInfo : info) {
-				if (bookInventoryInfo.getBookTitle().equals(book))
+				if (bookInventoryInfo.getBookTitle().equals(book)) {
+					info.remove(bookInventoryInfo);
 					return OrderResult.SUCCESSFULLY_TAKEN;
+				}
 			}
 		}
 		return OrderResult.NOT_IN_STOCK;
