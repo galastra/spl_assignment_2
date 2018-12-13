@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * all other micro-services about the current time tick using {@link //Tick Broadcast}.
  * This class may not hold references for objects which it is not responsible for:
  * {@link //ResourcesHolder}, {@link //MoneyRegister}, {@link //Inventory}.
- * 
+ *
  * You can add private fields and public methods to this class.
  * You MAY change constructor signatures and even add new public constructors.
  */
@@ -41,8 +41,8 @@ public class TimeService extends MicroService{
 
 	private TimeService(int _speed,int _duration) {
 		super("Time Service");
-        speed = _speed;
-        duration = _duration;
+		speed = _speed;
+		duration = _duration;
 	}
 
 	@Override
@@ -55,8 +55,8 @@ public class TimeService extends MicroService{
 				System.out.println("sending tick "+tick.intValue());
 				sendBroadcast(new TickBroadcast(tick.getAndIncrement()));
 				if (tick.compareAndSet(duration,tick.intValue())){
-					 timer.cancel();
-					 terminate();
+					timer.cancel();
+					terminate();
 				}
 
 			}
@@ -64,7 +64,7 @@ public class TimeService extends MicroService{
 		timer.scheduleAtFixedRate(timerTask,0,speed);
 
 
-		
+
 	}
 
 }

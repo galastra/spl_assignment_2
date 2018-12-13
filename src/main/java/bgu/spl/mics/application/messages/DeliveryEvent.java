@@ -1,6 +1,8 @@
 package bgu.spl.mics.application.messages;
 
 import bgu.spl.mics.Event;
+import bgu.spl.mics.Future;
+import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 
 /**
  * An event that is sent when the BookOrderEvent is succesfully completed and a delivery is required.
@@ -12,4 +14,21 @@ import bgu.spl.mics.Event;
  */
 
 public class DeliveryEvent implements Event {
+
+    private int distance;
+    private String address;
+
+    public DeliveryEvent(int _distance,String _address)
+    {
+        this.address=_address;
+        this.distance=_distance;
+    }
+
+    public int getDistance() {
+        return distance;
+    }
+
+    public String getAddress() {
+        return address;
+    }
 }
