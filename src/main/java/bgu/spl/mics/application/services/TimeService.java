@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.LastTickBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 
 import java.util.Timer;
@@ -56,6 +57,7 @@ public class TimeService extends MicroService{
 				sendBroadcast(new TickBroadcast(tick.getAndIncrement()));
 				if (tick.compareAndSet(duration,tick.get())){
 					timer.cancel();
+					sendBroadcast(new LastTickBroadcast());
 					terminate();
 				}
 

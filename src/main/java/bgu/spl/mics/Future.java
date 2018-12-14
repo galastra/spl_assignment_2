@@ -34,7 +34,6 @@ public class Future<T> {
 		synchronized (this) {
 			try {
 				while (!_isdone) {
-					System.out.println("stil waiting...");
 					this.wait();
 				}
 			} catch (InterruptedException e) {

@@ -1,5 +1,7 @@
 package bgu.spl.mics.application.passiveObjects;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Passive data-object representing a information about a certain book in the inventory.
  * You must not alter any of the given public methods of this class. 
@@ -8,14 +10,15 @@ package bgu.spl.mics.application.passiveObjects;
  */
 public class BookInventoryInfo {
 
-	private String _bookTitle;
-	private int _amountInInventory;
-	private int _price;
+	private String bookTitle;
+	@SerializedName("amount")
+	private int amountInInventory;
+	private int price;
 
 	public BookInventoryInfo(String bookTitle,int amountInInventory,int price){
-		this._amountInInventory=amountInInventory;
-		this._bookTitle=bookTitle;
-		this._price=price;
+		this.amountInInventory=amountInInventory;
+		this.bookTitle=bookTitle;
+		this.price=price;
 	}
 
 	/**
@@ -24,7 +27,7 @@ public class BookInventoryInfo {
      * @return The title of this book.   
      */
 	public String getBookTitle() {
-		return _bookTitle;
+		return bookTitle;
 	}
 
 	/**
@@ -33,7 +36,7 @@ public class BookInventoryInfo {
      * @return amount of available books.      
      */
 	public int getAmountInInventory() {
-		return _amountInInventory;
+		return amountInInventory;
 	}
 
 	/**
@@ -42,7 +45,7 @@ public class BookInventoryInfo {
      * @return the price of the book.
      */
 	public int getPrice() {
-		return _price;
+		return price;
 	}
 	
 	

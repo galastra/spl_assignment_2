@@ -19,7 +19,7 @@ import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 public class LogisticsService extends MicroService {
 
 	public LogisticsService(int id) {
-		super("Logistics Service "+id);
+		super("Logistics Service " + id);
 
 	}
 

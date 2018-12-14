@@ -1,10 +1,7 @@
 package bgu.spl.mics.application.passiveObjects;
 
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -18,7 +15,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * <p>
  * You can add ONLY private fields and methods to this class as you see fit.
  */
-public class MoneyRegister {
+public class MoneyRegister implements Serializable {
 	private static volatile MoneyRegister instance = null;
 	private static Object mutex = new Object();
 	private static ConcurrentLinkedQueue<OrderReceipt> receiptList = new ConcurrentLinkedQueue<>();
@@ -82,16 +79,7 @@ public class MoneyRegister {
 		List<OrderReceipt> receipts2print = new ArrayList<>();
 		synchronized (filename) {
 			receipts2print.addAll(receiptList);
-			try {
-				FileOutputStream fileOut =
-						new FileOutputStream(filename);
-				ObjectOutputStream out = new ObjectOutputStream(fileOut);
-				out.writeObject(receipts2print);
-				out.close();
-				fileOut.close();
-			} catch (IOException i) {
-				i.printStackTrace();
-			}
 		}
+			new Printer<List<OrderReceipt>>(filename,receipts2print).print();
 	}
 }

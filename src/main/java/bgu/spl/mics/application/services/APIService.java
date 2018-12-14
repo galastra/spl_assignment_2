@@ -3,16 +3,15 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.BookOrderEvent;
+import bgu.spl.mics.application.messages.LastTickBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.Customer;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 import bgu.spl.mics.application.passiveObjects.OrderSchedule;
+import bgu.spl.mics.application.passiveObjects.Printer;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,19 +36,22 @@ public class APIService extends MicroService{
 	//the actual order id because we do not get it from the json file but it's the id
 	//corresponding to the order id in the list
 
-	public APIService(List<OrderSchedule> _schedules,Customer _customer) {
-		super("API Service");
+	public APIService(int id,List<OrderSchedule> _schedules,Customer _customer) {
+		super("API Service "+id);
 		this.futures=new LinkedList<>();
 		this.receipts=new LinkedList<>();
-		schedules.addAll(_schedules);
-		orderIdIndex = new AtomicInteger(0);
-		schedules.sort(new Comparator<OrderSchedule>() {
-			@Override
-			public int compare(OrderSchedule o1, OrderSchedule o2) {
-				return Integer.compare(o1.getTick(),o2.getTick());
-			}
-		});
 		this.customer=_customer;
+		orderIdIndex = new AtomicInteger(0);
+		schedules = new ArrayList<>();
+		synchronized (this) {
+			schedules.addAll(_schedules);
+			schedules.sort(new Comparator<OrderSchedule>() {
+				@Override
+				public int compare(OrderSchedule o1, OrderSchedule o2) {
+					return Integer.compare(o1.getTick(), o2.getTick());
+				}
+			});
+		}
 	}
 
 	public List<OrderReceipt> getReceipts() {
@@ -59,6 +61,7 @@ public class APIService extends MicroService{
 	@Override
 	protected void initialize() {
 		System.out.println("API Service "+getName()+" started");
+
 		subscribeBroadcast(TickBroadcast.class,broadcast->{
 			while (orderIdIndex.get() < schedules.size() && broadcast.getCurr_tick() == schedules.get(orderIdIndex.get()).getTick()) {
 				Future<OrderReceipt> receiptFuture = (Future<OrderReceipt>) sendEvent(new BookOrderEvent(schedules.get(orderIdIndex.get()).getBookTitle(),
@@ -73,6 +76,9 @@ public class APIService extends MicroService{
 			}
 		});
 
+		subscribeBroadcast(LastTickBroadcast.class,lastickCallback->{
+			terminate();
+		});
 
 
 	}

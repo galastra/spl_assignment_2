@@ -7,21 +7,21 @@ package bgu.spl.mics.application.passiveObjects;
  * You may add ONLY private fields and methods to this class.
  */
 public class DeliveryVehicle {
-	private int _license;
-	private int _speed;
+	private int license;
+	private int speed;
 
 	/**
      * Constructor.   
      */
 	 public DeliveryVehicle(int license, int speed) {
-		_license = license;
-		_speed = speed;
+		this.license = license;
+		this.speed = speed;
 	  }
 	/**
      * Retrieves the license of this delivery vehicle.   
      */
 	public int getLicense() {
-		return _license;
+		return license;
 	}
 	
 	/**
@@ -30,7 +30,7 @@ public class DeliveryVehicle {
      * @return Number of ticks needed for 1 Km.
      */
 	public int getSpeed() {
-		return _speed;
+		return speed;
 	}
 	
 	/**
@@ -44,7 +44,7 @@ public class DeliveryVehicle {
 		// TODO Implement this
 		// I did not understood this at all {gal}
 		try {
-			Thread.sleep(distance / _speed);
+			Thread.sleep(distance / speed);
 		}catch (Exception e){}
 	}
 }

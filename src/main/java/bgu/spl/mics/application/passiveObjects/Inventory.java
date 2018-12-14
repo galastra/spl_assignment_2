@@ -2,10 +2,7 @@ package bgu.spl.mics.application.passiveObjects;
 
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -20,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Inventory {
 	private static volatile Inventory instance = null; //galastra: volatile=נדיף
-	private static List<BookInventoryInfo> info;
+	private static List<BookInventoryInfo> info = new ArrayList<>();
 	private static Object mutex = new Object();
 
 	public Inventory(){}
@@ -49,9 +46,7 @@ public class Inventory {
      * 						of the inventory.
      */
 	public void load (BookInventoryInfo[ ] inventory ) {
-		for(int i=0;i<inventory.length;i++) {
-			info.add(inventory[i]);
-		}
+		info.addAll(Arrays.asList(inventory));
 	}
 	
 	/**
@@ -107,16 +102,7 @@ public class Inventory {
 			for (BookInventoryInfo bookInventoryInfo : info) {
 				printMap.put(bookInventoryInfo.getBookTitle(),bookInventoryInfo.getPrice());
 			}
-			try {
-				FileOutputStream fileOut =
-						new FileOutputStream(filename);
-				ObjectOutputStream out = new ObjectOutputStream(fileOut);
-				out.writeObject(printMap);
-				out.close();
-				fileOut.close();
-			} catch (IOException i) {
-				i.printStackTrace();
-			}
+			new Printer<HashMap<String,Integer>>(filename,printMap).print();
 		}
 	}
 }

@@ -2,6 +2,7 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.CheckAvailableEvent;
+import bgu.spl.mics.application.messages.LastTickBroadcast;
 import bgu.spl.mics.application.messages.TakeBookEvent;
 import bgu.spl.mics.application.passiveObjects.Inventory;
 
@@ -17,10 +18,12 @@ import bgu.spl.mics.application.passiveObjects.Inventory;
 
 public class InventoryService extends MicroService{
 	private Inventory inventory;
+	private String filename2print;
 
-	public InventoryService(int id) {
+	public InventoryService(int id,String filename2print) {
 		super("InventoryService "+id);
 		inventory = Inventory.getInstance();
+		this.filename2print = filename2print;
 	}
 
 	@Override
@@ -29,8 +32,13 @@ public class InventoryService extends MicroService{
 			complete(checkCallBack,inventory.checkAvailabiltyAndGetPrice(checkCallBack.getBooktitle()));
 		});
 
-		subscribeEvent(TakeBookEvent.class,takeCallBack->{
-			complete(takeCallBack,inventory.take(takeCallBack.getBookTitle()));
+		subscribeEvent(TakeBookEvent.class,takeCallback->{
+			complete(takeCallback,inventory.take(takeCallback.getBookTitle()));
+		});
+
+		subscribeBroadcast(LastTickBroadcast.class,lastTickCallback->{
+			inventory.printInventoryToFile(filename2print);
+			terminate();
 		});
 		
 	}
