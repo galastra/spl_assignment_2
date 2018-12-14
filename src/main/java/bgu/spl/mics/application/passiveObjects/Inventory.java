@@ -1,10 +1,8 @@
 package bgu.spl.mics.application.passiveObjects;
 
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
@@ -104,13 +102,21 @@ public class Inventory {
      * This method is called by the main method in order to generate the output.
      */
 	public void printInventoryToFile(String filename){
-		ConcurrentHashMap<String,Integer> printMap = new ConcurrentHashMap<>();
-		File file = new File(filename);
-		for (BookInventoryInfo bookInventoryInfo : info) {
-			printMap.put(bookInventoryInfo.getBookTitle(),bookInventoryInfo.getPrice());
-		}
-		synchronized (file){
-			//TODO: write to the file **without overwriting it
+		HashMap<String,Integer> printMap = new HashMap<>();
+		synchronized (filename){
+			for (BookInventoryInfo bookInventoryInfo : info) {
+				printMap.put(bookInventoryInfo.getBookTitle(),bookInventoryInfo.getPrice());
+			}
+			try {
+				FileOutputStream fileOut =
+						new FileOutputStream(filename);
+				ObjectOutputStream out = new ObjectOutputStream(fileOut);
+				out.writeObject(printMap);
+				out.close();
+				fileOut.close();
+			} catch (IOException i) {
+				i.printStackTrace();
+			}
 		}
 	}
 }

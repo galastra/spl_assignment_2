@@ -43,5 +43,8 @@ public class DeliveryVehicle {
 	public void deliver(String address, int distance) {
 		// TODO Implement this
 		// I did not understood this at all {gal}
+		try {
+			Thread.sleep(distance / _speed);
+		}catch (Exception e){}
 	}
 }

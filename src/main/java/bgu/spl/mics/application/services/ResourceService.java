@@ -19,8 +19,8 @@ import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 public class ResourceService extends MicroService{
 	private ResourcesHolder resourcesHolder;
 
-	public ResourceService() {
-		super("Resource Service");
+	public ResourceService(int id) {
+		super("Resource Service "+id);
 		resourcesHolder=ResourcesHolder.getInstance();
 	}
 

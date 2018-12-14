@@ -6,5 +6,14 @@ package bgu.spl.mics.application;
  */
 public class BookStoreRunner {
     public static void main(String[] args) {
+        String jsonFilename = args[0];
+        String output4Customers = args[1];
+        String output4books = args[2];
+        String output4receipts = args[3];
+
+
+
+
+
     }
 }

@@ -2,6 +2,11 @@ package bgu.spl.mics.application.passiveObjects;
 
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -74,9 +79,19 @@ public class MoneyRegister {
      * This method is called by the main method in order to generate the output.. 
      */
 	public void printOrderReceipts(String filename) {
-		File file = new File(filename);
-		synchronized (file) {
-			//TODO: Implement this
+		List<OrderReceipt> receipts2print = new ArrayList<>();
+		synchronized (filename) {
+			receipts2print.addAll(receiptList);
+			try {
+				FileOutputStream fileOut =
+						new FileOutputStream(filename);
+				ObjectOutputStream out = new ObjectOutputStream(fileOut);
+				out.writeObject(receipts2print);
+				out.close();
+				fileOut.close();
+			} catch (IOException i) {
+				i.printStackTrace();
+			}
 		}
 	}
 }

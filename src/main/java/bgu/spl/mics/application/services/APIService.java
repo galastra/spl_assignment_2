@@ -27,10 +27,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class APIService extends MicroService{
-	private List<OrderSchedule> schedules;
+	private static List<OrderSchedule> schedules;
 	private Customer customer;
-	private List<Future<OrderReceipt>> futures;
-	private List<OrderReceipt> receipts;
+	private static List<Future<OrderReceipt>> futures;
+	private static List<OrderReceipt> receipts;
 
 	private AtomicInteger orderIdIndex;
 	//I added it because the OrderId field in OrderSchedule has nothing to do with

@@ -24,8 +24,8 @@ public class SellingService extends MicroService{
     private MoneyRegister moneyRegister;
     private int curr_tick;
 
-    public SellingService() {
-        super("Selling Service");
+    public SellingService(int id) {
+        super("Selling Service "+id);
         moneyRegister = MoneyRegister.getInstance();
     }
 
@@ -39,6 +39,7 @@ public class SellingService extends MicroService{
         });
 
         subscribeEvent(BookOrderEvent.class, ev-> {
+            int processTick = curr_tick;
             Future<Integer> futureBookPrice = (Future<Integer>) sendEvent(
                     new CheckAvailableEvent(ev.getBookTitle()));
             if (futureBookPrice == null)
@@ -53,14 +54,13 @@ public class SellingService extends MicroService{
                 else{
                     //Building the Receipt
                     int orderid = ev.getOrderId();
-                    String seller = "Store"; //TODO: figure out what should be here
+                    String seller = getName();
                     int customer = ev.getCustomer().getId();
                     String bookTitle = ev.getBookTitle();
                     int price = priceResult;
-                    int issuedTick = 0; //TODO: what is this
+                    //int issuedTick will be resolved in the future
                     int orderTick = ev.getTick();
-                    int processTick = curr_tick; //TODO: what is this
-                    OrderReceipt receipt = new OrderReceipt(orderid,seller,customer,bookTitle,price,issuedTick,orderTick,processTick);
+                    //int processTick has been resolved
                     //
 
                     Future<OrderResult> futureOrderResult = (Future<OrderResult>)sendEvent(new TakeBookEvent(bookTitle));
@@ -72,6 +72,8 @@ public class SellingService extends MicroService{
 
                         if (orderResult == OrderResult.SUCCESSFULLY_TAKEN){
                             moneyRegister.chargeCreditCard(ev.getCustomer(),priceResult);
+                            int issuedTick = curr_tick;
+                            OrderReceipt receipt = new OrderReceipt(orderid,seller,customer,bookTitle,price,issuedTick,orderTick,processTick);
                             complete(ev,receipt);
                         }
                         else {
