@@ -2,13 +2,15 @@ package bgu.spl.mics.application.passiveObjects;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+
 /**
  * Passive data-object representing a information about a certain book in the inventory.
  * You must not alter any of the given public methods of this class. 
  * <p>
  * You may add fields and methods to this class as you see fit (including public methods).
  */
-public class BookInventoryInfo {
+public class BookInventoryInfo implements Serializable {
 
 	private String bookTitle;
 	@SerializedName("amount")

@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Passive object representing the store finance management. 
@@ -18,7 +19,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class MoneyRegister implements Serializable {
 	private static volatile MoneyRegister instance = null;
 	private static Object mutex = new Object();
-	private static ConcurrentLinkedQueue<OrderReceipt> receiptList = new ConcurrentLinkedQueue<>();
+	private ConcurrentLinkedQueue<OrderReceipt> receiptList = new ConcurrentLinkedQueue<>();
 
 	/**
      * Retrieves the single instance of this class.
@@ -49,14 +50,12 @@ public class MoneyRegister implements Serializable {
      * Retrieves the current total earnings of the store.  
      */
 	public int getTotalEarnings() {
-		synchronized (this) {
-			int sum = 0;
+			AtomicInteger sum = new AtomicInteger(0);
 			for (OrderReceipt receipt : receiptList) {
-				sum += receipt.getPrice();
+				sum.addAndGet(receipt.getPrice());
 			}
-			return sum;
+			return sum.get();
 		}
-	}
 	
 	/**
      * Charges the credit card of the customer a certain amount of money.
@@ -64,10 +63,7 @@ public class MoneyRegister implements Serializable {
      * @param amount 	amount to charge
      */
 	public void chargeCreditCard(Customer c, int amount) {
-		for(OrderReceipt orderReceipt : receiptList){
-			if (orderReceipt.getCustomerId() == c.getId())
-				c.chargeCredit(amount);
-		}
+		c.chargeCredit(amount);
 	}
 	
 	/**

@@ -6,7 +6,6 @@ import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 import bgu.spl.mics.application.passiveObjects.OrderResult;
-import bgu.spl.mics.application.passiveObjects.Printer;
 
 /**
  * Selling service in charge of taking orders from customers.
@@ -29,18 +28,18 @@ public class SellingService extends MicroService{
         filename4MoneyReg = _filename4MoneyReg;
     }
 
+    private int getCurr_tick(){return curr_tick;}
+
     @Override
     protected void initialize() {
         System.out.println("Selling Service "+getName()+" started");
-        curr_tick = 1;
+        curr_tick = 0;
 
         subscribeBroadcast(TickBroadcast.class,broad->{
             curr_tick = broad.getCurr_tick();
         });
 
         subscribeBroadcast(LastTickBroadcast.class,brod->{
-            new Printer<MoneyRegister>(filename4MoneyReg,moneyRegister).print();
-            //TODO: find a better solution because right now it gets printed a lot of times
             System.out.println(getName()+" terminates");
             terminate();
         });
@@ -80,9 +79,10 @@ public class SellingService extends MicroService{
                         if (orderResult == OrderResult.SUCCESSFULLY_TAKEN){
                             System.out.println("book has been successfully taken");
                             moneyRegister.chargeCreditCard(ev.getCustomer(),priceResult);
-                            int issuedTick = curr_tick;
+                            int issuedTick = getCurr_tick();
                             OrderReceipt receipt = new OrderReceipt(orderid,seller,customer,bookTitle,price,issuedTick,orderTick,processTick);
                             complete(ev,receipt);
+                            moneyRegister.file(receipt);
                             //TODO: send the delivery event and make the logisticsService and resourcesService work
                             sendEvent(new DeliveryEvent(ev.getCustomer().getDistance(),ev.getCustomer().getAddress()));
                         }

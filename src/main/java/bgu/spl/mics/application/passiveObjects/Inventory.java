@@ -1,9 +1,7 @@
 package bgu.spl.mics.application.passiveObjects;
 
 
-import java.io.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Passive data-object representing the store inventory.
@@ -15,10 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * You can add ONLY private fields and methods to this class as you see fit.
  */
-public class Inventory {
+public class Inventory{
 	private static volatile Inventory instance = null; //galastra: volatile=נדיף
-	private static List<BookInventoryInfo> info = new ArrayList<>();
 	private static Object mutex = new Object();
+	private List<BookInventoryInfo> info = new ArrayList<>();
 
 	public Inventory(){}
 
@@ -101,7 +99,7 @@ public class Inventory {
 		HashMap<String,Integer> printMap = new HashMap<>();
 		synchronized (filename){
 			for (BookInventoryInfo bookInventoryInfo : info) {
-				printMap.put(bookInventoryInfo.getBookTitle(),bookInventoryInfo.getPrice());
+				printMap.put(bookInventoryInfo.getBookTitle(),bookInventoryInfo.getAmountInInventory());
 			}
 			new Printer<HashMap<String,Integer>>(filename,printMap).print();
 		}

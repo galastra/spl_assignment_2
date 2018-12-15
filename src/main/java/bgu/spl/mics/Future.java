@@ -80,10 +80,15 @@ public class Future<T> {
      *         elapsed, return null.
      */
 	public T get(long timeout, TimeUnit unit) {
-		try {
-			if (!_isdone) unit.sleep(timeout);
-		} catch (InterruptedException e){
-			System.out.println("got Interrupted");
+		synchronized (this) {
+			try {
+				while (!_isdone) {
+					this.wait(unit.toNanos(timeout));
+				}
+			} catch (InterruptedException e) {
+				System.out.println("got Interrupted");
+			}
+			this.notifyAll();
 		}
 		return obj;
 	}

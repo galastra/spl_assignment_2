@@ -64,6 +64,11 @@ public class TimeService extends MicroService{
 		};
 		timer.scheduleAtFixedRate(timerTask,0,speed);
 
+		subscribeBroadcast(LastTickBroadcast.class,brod->{
+			System.out.println(getName()+" terminates");
+			terminate();
+		});
+
 
 
 	}

@@ -30,6 +30,7 @@ public class Customer implements Serializable {
 		receipts = _receipts;
 		credit_card = _credit_card;
 		available_amount_credit_card = _available_amount_credit_card;
+		receipts = new ArrayList<>();
 	}
 
 	public Customer(Customer other){

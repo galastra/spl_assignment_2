@@ -8,12 +8,8 @@ import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.Customer;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 import bgu.spl.mics.application.passiveObjects.OrderSchedule;
-import bgu.spl.mics.application.passiveObjects.Printer;
 
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -32,16 +28,12 @@ public class APIService extends MicroService{
 	private List<OrderReceipt> receipts;
 
 	private AtomicInteger orderIdIndex;
-	String filename4OrderReceipts;
-	String filename4Customers;
 	//I added it because the OrderId field in OrderSchedule has nothing to do with
 	//the actual order id because we do not get it from the json file but it's the id
 	//corresponding to the order id in the list
 
-	public APIService(int id,List<OrderSchedule> _schedules,Customer _customer,String _filename4OrderReceipts, String _filename4Customers) {
+	public APIService(int id,List<OrderSchedule> _schedules,Customer _customer) {
 		super("API Service "+id);
-		filename4Customers = _filename4Customers;
-		filename4OrderReceipts = _filename4OrderReceipts;
 		this.futures=new ArrayList<>();
 		this.receipts=new ArrayList<>();
 		this.customer=_customer;
@@ -71,22 +63,18 @@ public class APIService extends MicroService{
 				Future<OrderReceipt> receiptFuture = (Future<OrderReceipt>) sendEvent(new BookOrderEvent(schedules.get(orderIdIndex.get()).getBookTitle(),
 						customer, broadcast.getCurr_tick(),orderIdIndex.get()));
 				futures.add(receiptFuture);
-				//schedules.remove(0);
 				orderIdIndex.incrementAndGet();
 			}
 		});
 
 		subscribeBroadcast(LastTickBroadcast.class,lastickCallback->{
 			for (Future<OrderReceipt> tempFuture: futures) {
-				//maybe we should do a timed get because we cant know which one will end first;
-				receipts.add(tempFuture.get());
-				customer.getCustomerReceiptList().add(tempFuture.get());
+				if (tempFuture.get() != null) { //TODO:figure out if a null receipt must be in the receipts
+					receipts.add(tempFuture.get());
+					customer.getCustomerReceiptList().add(tempFuture.get());
+				}
 			}
-
-			//TODO: perhaps this overwrites or make a bunch of objects except for one list of them
 			System.out.println(getName()+" terminates");
-			new Printer<List<OrderReceipt>>(filename4OrderReceipts,receipts).print();
-			new Printer<Customer>(filename4Customers,customer).print();
 			terminate();
 		});
 

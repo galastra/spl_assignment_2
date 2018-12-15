@@ -1,9 +1,5 @@
 package bgu.spl.mics;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 import java.util.concurrent.*;
 
 /**
@@ -118,7 +114,6 @@ public class MessageBusImpl implements MessageBus {
 			for (ConcurrentHashMap.Entry<Class<? extends Message>,ConcurrentLinkedQueue<MicroService>> entry : handleMessages.entrySet()){ //removes m from the handleMessages
 				ConcurrentLinkedQueue<MicroService> tmpQueue = entry.getValue();
 				tmpQueue.remove(m);
-				entry.setValue(tmpQueue);
 			}
 		}
 	}
