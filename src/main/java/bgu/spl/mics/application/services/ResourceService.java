@@ -27,7 +27,7 @@ public class ResourceService extends MicroService{
 
 	@Override
 	protected void initialize() {
-		System.out.println(getName() +" started");
+		//System.out.println(getName() +" started");
 
 		subscribeEvent(AcquireVehicleEvent.class,ev->{
 			//should return the future<Vehicle>? YES
@@ -42,7 +42,7 @@ public class ResourceService extends MicroService{
 		});
 
 		subscribeBroadcast(LastTickBroadcast.class,brod->{
-			System.out.println(getName() +" terminates");
+			//System.out.println(getName() +" terminates");
 			terminate();
 		});
 

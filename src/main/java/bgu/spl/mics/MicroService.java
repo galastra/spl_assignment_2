@@ -1,8 +1,4 @@
 package bgu.spl.mics;
-
-import sun.plugin2.jvm.RemoteJVMLauncher;
-
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -103,8 +99,7 @@ public abstract class MicroService implements Runnable {
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
     protected final <T> Future<T> sendEvent(Event<T> e) {
-        Future<T> future = (MessageBusImpl.getInstance()).sendEvent(e);
-        return future;
+        return  (MessageBusImpl.getInstance()).sendEvent(e);
     }
 
     /**
@@ -165,9 +160,8 @@ public abstract class MicroService implements Runnable {
                msg= (MessageBusImpl.getInstance()).awaitMessage(this);
                Callback callback = callbacks.get(msg.getClass());
                callback.call(msg);
-               //callbacks.get(msg.getClass()).call(msg);
             }catch (Exception e){
-                System.out.println("got caught while running the MicroService "+getName()+"\n error: "+e.toString());
+                //System.out.println("got caught while running the MicroService "+getName()+"\n error: "+e.toString());
             }
         }
         bus.unregister(this);

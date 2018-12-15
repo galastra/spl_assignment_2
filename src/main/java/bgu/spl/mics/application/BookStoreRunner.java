@@ -3,14 +3,12 @@ package bgu.spl.mics.application;
 import bgu.spl.mics.application.passiveObjects.*;
 import bgu.spl.mics.application.services.*;
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /** This is the Main class of the application. You should parse the input file,
  * create the different instances of the objects, and run the system.

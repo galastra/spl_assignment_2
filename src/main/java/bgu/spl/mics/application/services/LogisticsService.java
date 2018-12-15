@@ -26,7 +26,7 @@ public class LogisticsService extends MicroService {
 
 	@Override
 	protected void initialize() {
-		System.out.println(getName()+" started");
+		//System.out.println(getName()+" started");
 
 		subscribeEvent(DeliveryEvent.class,ev->{
 			Future<Future<DeliveryVehicle>> futureDeliveryVehicle=sendEvent(new AcquireVehicleEvent());
@@ -36,7 +36,7 @@ public class LogisticsService extends MicroService {
 		});
 
 		subscribeBroadcast(LastTickBroadcast.class,brod->{
-			System.out.println(getName()+" terminates");
+			//System.out.println(getName()+" terminates");
 			terminate();
 		});
 	}

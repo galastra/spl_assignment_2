@@ -11,7 +11,7 @@ import bgu.spl.mics.application.passiveObjects.Inventory;
  * Holds a reference to the {@link //Inventory} singleton of the store.
  * This class may not hold references for objects which it is not responsible for:
  * {@link //ResourcesHolder}, {@link //MoneyRegister}.
- * 
+ *
  * You can add private fields and public methods to this class.
  * You MAY change constructor signatures and even add new public constructors.
  */
@@ -28,7 +28,7 @@ public class InventoryService extends MicroService{
 
 	@Override
 	protected void initialize() {
-		System.out.println(getName()+" started");
+		//System.out.println(getName()+" started");
 
 		subscribeEvent(CheckAvailableEvent.class,checkCallBack->{
 			complete(checkCallBack,inventory.checkAvailabiltyAndGetPrice(checkCallBack.getBooktitle()));
@@ -39,7 +39,7 @@ public class InventoryService extends MicroService{
 		});
 
 		subscribeBroadcast(LastTickBroadcast.class,lastTickCallback->{
-			System.out.println(getName()+" terminates");
+			//System.out.println(getName()+" terminates");
 			inventory.printInventoryToFile(filename2print);
 			terminate();
 		});

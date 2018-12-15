@@ -44,6 +44,8 @@ public class DeliveryVehicle {
 		try {
 			Thread.sleep(distance / speed);
 			System.out.println("delivered");
-		}catch (Exception e){System.out.println("ERROR WHILE DELIVERING "+e.getMessage());}
+		}catch (Exception e){
+			//System.out.println("ERROR WHILE DELIVERING "+e.getMessage());
+		}
 	}
 }

@@ -32,7 +32,7 @@ public class SellingService extends MicroService{
 
     @Override
     protected void initialize() {
-        System.out.println("Selling Service "+getName()+" started");
+        //System.out.println("Selling Service "+getName()+" started");
         curr_tick = 0;
 
         subscribeBroadcast(TickBroadcast.class,broad->{
@@ -40,7 +40,7 @@ public class SellingService extends MicroService{
         });
 
         subscribeBroadcast(LastTickBroadcast.class,brod->{
-            System.out.println(getName()+" terminates");
+            //System.out.println(getName()+" terminates");
             terminate();
         });
 
@@ -48,13 +48,13 @@ public class SellingService extends MicroService{
             int processTick = curr_tick;
             Future<Integer> futureBookPrice = (Future<Integer>) sendEvent(
                     new CheckAvailableEvent(ev.getBookTitle()));
-            if (futureBookPrice == null)
-                System.out.println("No Micro-Service has registered to handle CheckAvailableEvent events! The event cannot be processed");
+            if (futureBookPrice == null){}
+                //System.out.println("No Micro-Service has registered to handle CheckAvailableEvent events! The event cannot be processed");
             else {
                 Integer priceResult = futureBookPrice.get(); //get the price from the InventoryService
 
                 if (priceResult==-1 || ev.getCustomer().getAvailableCreditAmount()<priceResult){
-                    System.out.println("not enough money or the book does not exist");
+                    //System.out.println("not enough money or the book does not exist");
                     complete(ev,null);
                 }
                 else{
@@ -71,13 +71,13 @@ public class SellingService extends MicroService{
 
                     Future<OrderResult> futureOrderResult = (Future<OrderResult>)sendEvent(new TakeBookEvent(bookTitle));
                     if (futureOrderResult == null){
-                        System.out.println("No Micro-Service has registered to handle TakeBookEvent events! The event cannot be processed");
+                        //System.out.println("No Micro-Service has registered to handle TakeBookEvent events! The event cannot be processed");
                     }
                     else{
                         OrderResult orderResult = futureOrderResult.get();
 
                         if (orderResult == OrderResult.SUCCESSFULLY_TAKEN){
-                            System.out.println("book has been successfully taken");
+                           // System.out.println("book has been successfully taken");
                             moneyRegister.chargeCreditCard(ev.getCustomer(),priceResult);
                             int issuedTick = getCurr_tick();
                             OrderReceipt receipt = new OrderReceipt(orderid,seller,customer,bookTitle,price,issuedTick,orderTick,processTick);
@@ -88,7 +88,7 @@ public class SellingService extends MicroService{
                         }
                         else {
                             complete(ev, null);
-                            System.out.println("SellingService tried to get the book but in the meanwhile it has been taken by someone else");
+                            //System.out.println("SellingService tried to get the book but in the meanwhile it has been taken by someone else");
                         }
                     }
 

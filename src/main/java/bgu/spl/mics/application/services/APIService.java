@@ -28,9 +28,10 @@ public class APIService extends MicroService{
 	private List<OrderReceipt> receipts;
 
 	private AtomicInteger orderIdIndex;
-	//I added it because the OrderId field in OrderSchedule has nothing to do with
+	/**I added it because the OrderId field in OrderSchedule has nothing to do with
 	//the actual order id because we do not get it from the json file but it's the id
-	//corresponding to the order id in the list
+	corresponding to the order id in the list
+	 **/
 
 	public APIService(int id,List<OrderSchedule> _schedules,Customer _customer) {
 		super("API Service "+id);
@@ -56,7 +57,7 @@ public class APIService extends MicroService{
 
 	@Override
 	protected void initialize() {
-		System.out.println(getName()+" started");
+		//System.out.println(getName()+" started");
 
 		subscribeBroadcast(TickBroadcast.class,broadcast->{
 			while (orderIdIndex.get() < schedules.size() && broadcast.getCurr_tick() == schedules.get(orderIdIndex.get()).getTick()) {
@@ -74,7 +75,7 @@ public class APIService extends MicroService{
 					customer.getCustomerReceiptList().add(tempFuture.get());
 				}
 			}
-			System.out.println(getName()+" terminates");
+			//System.out.println(getName()+" terminates");
 			terminate();
 		});
 

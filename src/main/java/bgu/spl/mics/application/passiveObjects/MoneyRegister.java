@@ -73,9 +73,7 @@ public class MoneyRegister implements Serializable {
      */
 	public void printOrderReceipts(String filename) {
 		List<OrderReceipt> receipts2print = new ArrayList<>();
-		synchronized (filename) {
-			receipts2print.addAll(receiptList);
-		}
-			new Printer<List<OrderReceipt>>(filename,receipts2print).print();
+		receipts2print.addAll(receiptList);
+		new Printer<List<OrderReceipt>>(filename,receipts2print).print();
 	}
 }
