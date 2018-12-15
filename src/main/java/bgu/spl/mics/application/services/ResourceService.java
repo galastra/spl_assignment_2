@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.AcquireVehicleEvent;
+import bgu.spl.mics.application.messages.LastTickBroadcast;
 import bgu.spl.mics.application.messages.ReleaseVehicleBroadcast;
 import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
@@ -26,6 +27,8 @@ public class ResourceService extends MicroService{
 
 	@Override
 	protected void initialize() {
+		System.out.println(getName() +" started");
+
 		subscribeEvent(AcquireVehicleEvent.class,ev->{
 			//should return the future<Vehicle>? YES
 			Future<DeliveryVehicle> temp=resourcesHolder.acquireVehicle();
@@ -36,6 +39,11 @@ public class ResourceService extends MicroService{
 
 		subscribeBroadcast(ReleaseVehicleBroadcast.class,ev->{
 			resourcesHolder.releaseVehicle(ev.getVehicle());
+		});
+
+		subscribeBroadcast(LastTickBroadcast.class,brod->{
+			System.out.println(getName() +" terminates");
+			terminate();
 		});
 
 	}

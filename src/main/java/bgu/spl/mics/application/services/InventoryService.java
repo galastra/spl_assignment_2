@@ -28,6 +28,8 @@ public class InventoryService extends MicroService{
 
 	@Override
 	protected void initialize() {
+		System.out.println(getName()+" started");
+
 		subscribeEvent(CheckAvailableEvent.class,checkCallBack->{
 			complete(checkCallBack,inventory.checkAvailabiltyAndGetPrice(checkCallBack.getBooktitle()));
 		});
@@ -37,6 +39,7 @@ public class InventoryService extends MicroService{
 		});
 
 		subscribeBroadcast(LastTickBroadcast.class,lastTickCallback->{
+			System.out.println(getName()+" terminates");
 			inventory.printInventoryToFile(filename2print);
 			terminate();
 		});

@@ -60,7 +60,6 @@ public class TimeService extends MicroService{
 					sendBroadcast(new LastTickBroadcast());
 					terminate();
 				}
-
 			}
 		};
 		timer.scheduleAtFixedRate(timerTask,0,speed);

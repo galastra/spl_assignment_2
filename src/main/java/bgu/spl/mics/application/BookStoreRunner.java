@@ -24,10 +24,11 @@ public class BookStoreRunner {
         String output4Customers = "/home/gal/IdeaProjects/SPL_assignment_2/src/main/java/bgu/spl/mics/application/customersFile";
         String output4Books = "/home/gal/IdeaProjects/SPL_assignment_2/src/main/java/bgu/spl/mics/application/booksFile";
         String output4Receipts = "/home/gal/IdeaProjects/SPL_assignment_2/src/main/java/bgu/spl/mics/application/receiptsFile";
-        String output4MoneyReg="";
+        String output4MoneyReg="/home/gal/IdeaProjects/SPL_assignment_2/src/main/java/bgu/spl/mics/application/MoneyRegFile";
         //String output4Customers = args[1];
-        //String output4books = args[2];
-        //String output4receipts = args[3];
+        //String output4Books = args[2];
+        //String output4Receipts = args[3];
+        //String output4MoneyReg = arg[4];
 
         Gson gson = new Gson();
 
@@ -40,18 +41,18 @@ public class BookStoreRunner {
 
         Inventory.getInstance().load(model.getInitialInventory());
         ResourcesHolder.getInstance().load(model.getInitialResources());
-        List<OrderSchedule> schedules = new ArrayList<>();
+        //List<OrderSchedule> schedules = new ArrayList<>();
         HashMap<Integer,Customer> vanille_customers = new HashMap<>();
         for (Models.JSON_Services.JSONC_Customer customer : model.getJson_services().getCustomers()){
             Customer vanille_customer = new Customer(customer);
             vanille_customer.setCreditCard(customer.getCreditCard());
             vanille_customers.put(customer.getId(),vanille_customer);
-            schedules.addAll(Arrays.asList(customer.getOrderSchedules()));
+            //schedules.addAll(Arrays.asList(customer.getOrderSchedules()));
 
         }
 
         for(int i=1;i<=model.getJson_services().getSellingServicesCount();i++){
-            new Thread(new SellingService(i)).start();
+            new Thread(new SellingService(i,output4MoneyReg)).start();
         }
         for (int i=1;i<=model.getJson_services().getInventroyServicesCount();i++){
             new Thread(new InventoryService(i,output4Books)).start();
@@ -63,14 +64,17 @@ public class BookStoreRunner {
             new Thread(new ResourceService(i)).start();
         }
         for (int i=1;i<=model.getJson_services().getCustomers().length;i++){
-            new Thread(new APIService(i,schedules,vanille_customers.get(i-1))).start();
+            Models.JSON_Services.JSONC_Customer super_customer  = model.getJson_services().getCustomers()[i-1];
+            Customer vanille_customer = new Customer(super_customer);
+            vanille_customer.setCreditCard(super_customer.getCreditCard());
+            new Thread(new APIService(i,Arrays.asList(super_customer.getOrderSchedules()),vanille_customer,output4Receipts,output4Customers)).start();
         }
 
         new Thread(TimeService.getInstance(model.getJson_services().getTime().getSpeed(),
                 model.getJson_services().getTime().getDuration())).start();
-        new Printer<HashMap<Integer,Customer>>(output4Customers,vanille_customers).print();
 
-
+        //new Printer<HashMap<Integer,Customer>>(output4Customers,vanille_customers).print();
+        //TODO: figure out how to print customers with their order receipts
 
 
 

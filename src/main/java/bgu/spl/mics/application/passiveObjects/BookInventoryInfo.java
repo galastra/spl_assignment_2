@@ -47,6 +47,10 @@ public class BookInventoryInfo {
 	public int getPrice() {
 		return price;
 	}
+
+	public void take1Book(){
+		amountInInventory--;
+	}
 	
 	
 

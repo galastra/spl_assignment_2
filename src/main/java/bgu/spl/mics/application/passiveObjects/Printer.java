@@ -5,6 +5,11 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
 
+/**
+ * The whole purpose of this class to make it simple to edit how we are printing the serialized objects to the file
+ * @param <T>
+ */
+
 public class Printer<T> {
 
     private String filename;

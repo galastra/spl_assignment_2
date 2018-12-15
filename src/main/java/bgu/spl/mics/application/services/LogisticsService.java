@@ -4,6 +4,7 @@ import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.AcquireVehicleEvent;
 import bgu.spl.mics.application.messages.DeliveryEvent;
+import bgu.spl.mics.application.messages.LastTickBroadcast;
 import bgu.spl.mics.application.messages.ReleaseVehicleBroadcast;
 import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 
@@ -25,11 +26,18 @@ public class LogisticsService extends MicroService {
 
 	@Override
 	protected void initialize() {
+		System.out.println(getName()+" started");
+
 		subscribeEvent(DeliveryEvent.class,ev->{
 			Future<Future<DeliveryVehicle>> futureDeliveryVehicle=sendEvent(new AcquireVehicleEvent());
 			DeliveryVehicle deliveryVehicle = futureDeliveryVehicle.get().get();
 			deliveryVehicle.deliver(ev.getAddress(),ev.getDistance());
 			sendBroadcast(new ReleaseVehicleBroadcast(deliveryVehicle));
+		});
+
+		subscribeBroadcast(LastTickBroadcast.class,brod->{
+			System.out.println(getName()+" terminates");
+			terminate();
 		});
 	}
 

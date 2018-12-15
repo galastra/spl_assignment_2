@@ -26,20 +26,24 @@ import java.util.concurrent.atomic.AtomicInteger;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class APIService extends MicroService{
-	private static List<OrderSchedule> schedules;
+	private List<OrderSchedule> schedules;
 	private Customer customer;
-	private static List<Future<OrderReceipt>> futures;
-	private static List<OrderReceipt> receipts;
+	private List<Future<OrderReceipt>> futures;
+	private List<OrderReceipt> receipts;
 
 	private AtomicInteger orderIdIndex;
+	String filename4OrderReceipts;
+	String filename4Customers;
 	//I added it because the OrderId field in OrderSchedule has nothing to do with
 	//the actual order id because we do not get it from the json file but it's the id
 	//corresponding to the order id in the list
 
-	public APIService(int id,List<OrderSchedule> _schedules,Customer _customer) {
+	public APIService(int id,List<OrderSchedule> _schedules,Customer _customer,String _filename4OrderReceipts, String _filename4Customers) {
 		super("API Service "+id);
-		this.futures=new LinkedList<>();
-		this.receipts=new LinkedList<>();
+		filename4Customers = _filename4Customers;
+		filename4OrderReceipts = _filename4OrderReceipts;
+		this.futures=new ArrayList<>();
+		this.receipts=new ArrayList<>();
 		this.customer=_customer;
 		orderIdIndex = new AtomicInteger(0);
 		schedules = new ArrayList<>();
@@ -60,23 +64,29 @@ public class APIService extends MicroService{
 
 	@Override
 	protected void initialize() {
-		System.out.println("API Service "+getName()+" started");
+		System.out.println(getName()+" started");
 
 		subscribeBroadcast(TickBroadcast.class,broadcast->{
 			while (orderIdIndex.get() < schedules.size() && broadcast.getCurr_tick() == schedules.get(orderIdIndex.get()).getTick()) {
 				Future<OrderReceipt> receiptFuture = (Future<OrderReceipt>) sendEvent(new BookOrderEvent(schedules.get(orderIdIndex.get()).getBookTitle(),
-						customer, broadcast.getCurr_tick(), schedules.get(orderIdIndex.get()).getOrderId()));
+						customer, broadcast.getCurr_tick(),orderIdIndex.get()));
 				futures.add(receiptFuture);
 				//schedules.remove(0);
 				orderIdIndex.incrementAndGet();
 			}
-			for (Future<OrderReceipt> temp: futures) {
-				//maybe we should do a timed get because we cant know which one will end first;
-				receipts.add(temp.get());
-			}
 		});
 
 		subscribeBroadcast(LastTickBroadcast.class,lastickCallback->{
+			for (Future<OrderReceipt> tempFuture: futures) {
+				//maybe we should do a timed get because we cant know which one will end first;
+				receipts.add(tempFuture.get());
+				customer.getCustomerReceiptList().add(tempFuture.get());
+			}
+
+			//TODO: perhaps this overwrites or make a bunch of objects except for one list of them
+			System.out.println(getName()+" terminates");
+			new Printer<List<OrderReceipt>>(filename4OrderReceipts,receipts).print();
+			new Printer<Customer>(filename4Customers,customer).print();
 			terminate();
 		});
 

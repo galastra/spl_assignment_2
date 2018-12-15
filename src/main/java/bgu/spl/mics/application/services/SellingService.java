@@ -2,13 +2,11 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.CheckAvailableEvent;
-import bgu.spl.mics.application.messages.TakeBookEvent;
-import bgu.spl.mics.application.messages.TickBroadcast;
+import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
-import bgu.spl.mics.application.messages.BookOrderEvent;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 import bgu.spl.mics.application.passiveObjects.OrderResult;
+import bgu.spl.mics.application.passiveObjects.Printer;
 
 /**
  * Selling service in charge of taking orders from customers.
@@ -23,10 +21,12 @@ import bgu.spl.mics.application.passiveObjects.OrderResult;
 public class SellingService extends MicroService{
     private MoneyRegister moneyRegister;
     private int curr_tick;
+    private String filename4MoneyReg;
 
-    public SellingService(int id) {
+    public SellingService(int id,String _filename4MoneyReg) {
         super("Selling Service "+id);
         moneyRegister = MoneyRegister.getInstance();
+        filename4MoneyReg = _filename4MoneyReg;
     }
 
     @Override
@@ -36,6 +36,13 @@ public class SellingService extends MicroService{
 
         subscribeBroadcast(TickBroadcast.class,broad->{
             curr_tick = broad.getCurr_tick();
+        });
+
+        subscribeBroadcast(LastTickBroadcast.class,brod->{
+            new Printer<MoneyRegister>(filename4MoneyReg,moneyRegister).print();
+            //TODO: find a better solution because right now it gets printed a lot of times
+            System.out.println(getName()+" terminates");
+            terminate();
         });
 
         subscribeEvent(BookOrderEvent.class, ev-> {
@@ -71,10 +78,13 @@ public class SellingService extends MicroService{
                         OrderResult orderResult = futureOrderResult.get();
 
                         if (orderResult == OrderResult.SUCCESSFULLY_TAKEN){
+                            System.out.println("book has been successfully taken");
                             moneyRegister.chargeCreditCard(ev.getCustomer(),priceResult);
                             int issuedTick = curr_tick;
                             OrderReceipt receipt = new OrderReceipt(orderid,seller,customer,bookTitle,price,issuedTick,orderTick,processTick);
                             complete(ev,receipt);
+                            //TODO: sent the delivery event and make the logisticsService and resourcesService work
+                            sendEvent(new DeliveryEvent(ev.getCustomer().getDistance(),ev.getCustomer().getAddress()));
                         }
                         else {
                             complete(ev, null);

@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.passiveObjects;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import bgu.spl.mics.application.passiveObjects.Models.JSON_Services.CreditCard;
 
@@ -69,6 +70,8 @@ public class Customer implements Serializable {
      * @return A list of receipts.
      */
 	public List<OrderReceipt> getCustomerReceiptList() {
+		if (receipts == null)
+			receipts = new ArrayList<>();
 		return receipts;
 	}
 	

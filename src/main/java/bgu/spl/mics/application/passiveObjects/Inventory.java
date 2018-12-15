@@ -54,14 +54,16 @@ public class Inventory {
      * <p>
      * @param book 		Name of the book to take from the store
      * @return 	an {@link Enum} with options NOT_IN_STOCK and SUCCESSFULLY_TAKEN.
-     * 			The first should not change the state of the inventory while the 
+     * 			The first sho/uld not change the state of the inventory while the
      * 			second should reduce by one the number of books of the desired type.
      */
 	public OrderResult take (String book) {
 		if (info.size()>0) {
-			for (BookInventoryInfo bookInventoryInfo : info) {
-				if (bookInventoryInfo.getBookTitle().equals(book)) {
-					info.remove(bookInventoryInfo);
+			Iterator<BookInventoryInfo> iter = info.iterator();
+			while(iter.hasNext()){
+				BookInventoryInfo bookInventoryInfo = iter.next();
+				if (bookInventoryInfo.getBookTitle().equals(book) && bookInventoryInfo.getAmountInInventory()>0) {
+					bookInventoryInfo.take1Book();
 					return OrderResult.SUCCESSFULLY_TAKEN;
 				}
 			}
@@ -80,12 +82,11 @@ public class Inventory {
 	public int checkAvailabiltyAndGetPrice(String book) {
 		if (info.size()>0) {
 			for (BookInventoryInfo bookInventoryInfo : info) {
-				if (bookInventoryInfo.getBookTitle().equals(book))
+				if (bookInventoryInfo.getBookTitle().equals(book) && bookInventoryInfo.getAmountInInventory()>0)
 					return bookInventoryInfo.getPrice();
 			}
 		}
 		return -1;
-
 	}
 	
 	/**
