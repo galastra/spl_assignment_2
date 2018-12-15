@@ -83,7 +83,7 @@ public class SellingService extends MicroService{
                             int issuedTick = curr_tick;
                             OrderReceipt receipt = new OrderReceipt(orderid,seller,customer,bookTitle,price,issuedTick,orderTick,processTick);
                             complete(ev,receipt);
-                            //TODO: sent the delivery event and make the logisticsService and resourcesService work
+                            //TODO: send the delivery event and make the logisticsService and resourcesService work
                             sendEvent(new DeliveryEvent(ev.getCustomer().getDistance(),ev.getCustomer().getAddress()));
                         }
                         else {
