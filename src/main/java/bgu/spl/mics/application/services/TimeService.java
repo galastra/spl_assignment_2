@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.messages.ImHereBroadcast;
 import bgu.spl.mics.application.messages.LastTickBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 
@@ -26,35 +27,41 @@ public class TimeService extends MicroService{
 	private static AtomicInteger tick;
 	private int speed;
 	private int duration;
+	private int servicesCount;
 
-	public static TimeService getInstance(int _speed,int _duration){
+	public static TimeService getInstance(int _speed,int _duration,int _servicesCount){
 		TimeService result = instance;
 		if (result == null){
 			synchronized (mutex){
 				result = instance;
 				if (result == null){
-					instance = result = new TimeService(_speed,_duration);
+					instance = result = new TimeService(_speed,_duration,_servicesCount);
 				}
 			}
 		}
 		return result;
 	}
 
-	private TimeService(int _speed,int _duration) {
+	private TimeService(int _speed,int _duration,int _servicesCount) {
 		super("Time Service");
 		speed = _speed;
 		duration = _duration;
+		servicesCount = _servicesCount;
 	}
 
 	@Override
 	protected void initialize() {
+		try {
+			//Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+			while (servicesCount!=0) this.wait();
+		}catch (Exception e){}
 		tick = new AtomicInteger(1);
 		Timer timer = new Timer();
 		TimerTask timerTask = new TimerTask() {
 			@Override
 			public void run() {
-				//System.out.println("sending tick "+tick.get());
-				sendBroadcast(new TickBroadcast(tick.getAndIncrement()));
+				System.out.println("sending tick "+tick.get());
+				sendBroadcast(new TickBroadcast((duration-tick.get())*speed,tick.getAndIncrement()));
 				if (tick.compareAndSet(duration,tick.get())){
 					timer.cancel();
 					sendBroadcast(new LastTickBroadcast());
@@ -63,6 +70,12 @@ public class TimeService extends MicroService{
 			}
 		};
 		timer.scheduleAtFixedRate(timerTask,0,speed);
+
+		subscribeBroadcast(ImHereBroadcast.class,brod->{
+			servicesCount--;
+			if (servicesCount == 0)
+				this.notifyAll();
+		});
 
 		subscribeBroadcast(LastTickBroadcast.class,brod->{
 			//System.out.println(getName()+" terminates");

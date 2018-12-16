@@ -76,4 +76,12 @@ public class MoneyRegister implements Serializable {
 		receipts2print.addAll(receiptList);
 		new Printer<List<OrderReceipt>>(filename,receipts2print).print();
 	}
+
+
+	//TODO: DELETE THIS BEFORE SUBMISSION; ONLY EXISTS FOR ZILBER
+	public List<OrderReceipt> getOrderReceipts() {
+		List<OrderReceipt> temp_receipts = new ArrayList<>();
+		temp_receipts.addAll(receiptList);
+		return temp_receipts;
+	}
 }

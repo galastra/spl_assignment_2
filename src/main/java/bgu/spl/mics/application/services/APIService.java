@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.BookOrderEvent;
+import bgu.spl.mics.application.messages.ImHereBroadcast;
 import bgu.spl.mics.application.messages.LastTickBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.Customer;
@@ -28,6 +29,8 @@ public class APIService extends MicroService{
 	private List<OrderReceipt> receipts;
 
 	private AtomicInteger orderIdIndex;
+	private static AtomicInteger orderReceiptId;
+
 	/**I added it because the OrderId field in OrderSchedule has nothing to do with
 	//the actual order id because we do not get it from the json file but it's the id
 	corresponding to the order id in the list
@@ -35,9 +38,11 @@ public class APIService extends MicroService{
 
 	public APIService(int id,List<OrderSchedule> _schedules,Customer _customer) {
 		super("API Service "+id);
+
 		this.futures=new ArrayList<>();
 		this.receipts=new ArrayList<>();
 		this.customer=_customer;
+		orderReceiptId = new AtomicInteger(0);
 		orderIdIndex = new AtomicInteger(0);
 		schedules = new ArrayList<>();
 		synchronized (this) {
@@ -57,12 +62,14 @@ public class APIService extends MicroService{
 
 	@Override
 	protected void initialize() {
-		//System.out.println(getName()+" started");
+		System.out.println(getName()+" started");
+
+		sendBroadcast(new ImHereBroadcast());
 
 		subscribeBroadcast(TickBroadcast.class,broadcast->{
 			while (orderIdIndex.get() < schedules.size() && broadcast.getCurr_tick() == schedules.get(orderIdIndex.get()).getTick()) {
 				Future<OrderReceipt> receiptFuture = (Future<OrderReceipt>) sendEvent(new BookOrderEvent(schedules.get(orderIdIndex.get()).getBookTitle(),
-						customer, broadcast.getCurr_tick(),orderIdIndex.get()));
+						customer, broadcast.getCurr_tick(),orderReceiptId.getAndIncrement()));
 				futures.add(receiptFuture);
 				orderIdIndex.incrementAndGet();
 			}
@@ -75,7 +82,7 @@ public class APIService extends MicroService{
 					customer.getCustomerReceiptList().add(tempFuture.get());
 				}
 			}
-			//System.out.println(getName()+" terminates");
+			System.out.println(getName()+" terminates");
 			terminate();
 		});
 

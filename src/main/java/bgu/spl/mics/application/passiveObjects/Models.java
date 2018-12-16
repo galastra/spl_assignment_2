@@ -2,8 +2,6 @@ package bgu.spl.mics.application.passiveObjects;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
-
 /**
  * This is a class I made for Gson
  * It's a complex class that from it we transfer the data

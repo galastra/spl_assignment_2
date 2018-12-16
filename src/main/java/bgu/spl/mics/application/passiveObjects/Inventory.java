@@ -57,12 +57,12 @@ public class Inventory{
      */
 	public OrderResult take (String book) {
 		if (info.size()>0) {
-			Iterator<BookInventoryInfo> iter = info.iterator();
-			while(iter.hasNext()){
-				BookInventoryInfo bookInventoryInfo = iter.next();
-				if (bookInventoryInfo.getBookTitle().equals(book) && bookInventoryInfo.getAmountInInventory()>0) {
-					bookInventoryInfo.take1Book();
-					return OrderResult.SUCCESSFULLY_TAKEN;
+			for(BookInventoryInfo bookInventoryInfo : info){
+				synchronized (this) {
+					if (bookInventoryInfo.getBookTitle().equals(book) && bookInventoryInfo.getAmountInInventory() > 0) {
+						bookInventoryInfo.take1Book();
+						return OrderResult.SUCCESSFULLY_TAKEN;
+					}
 				}
 			}
 		}

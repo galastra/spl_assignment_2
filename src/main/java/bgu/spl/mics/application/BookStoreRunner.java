@@ -5,10 +5,7 @@ import bgu.spl.mics.application.services.*;
 import com.google.gson.Gson;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /** This is the Main class of the application. You should parse the input file,
  * create the different instances of the objects, and run the system.
@@ -33,8 +30,7 @@ public class BookStoreRunner {
         //load from JSON (using GSON)
         try {
             FileReader reader = new FileReader(jsonFilename);
-            model = gson.fromJson(reader
-                    , Models.class);
+            model = gson.fromJson(reader, Models.class);
         }catch (Exception e){System.out.println(e.getMessage());}
 
         //building resources
@@ -48,12 +44,12 @@ public class BookStoreRunner {
         }
         //making threads and adding them to the threadList
         for(int i=1;i<=model.getJson_services().getSellingServicesCount();i++){
-            Thread thread = new Thread(new SellingService(i,output4MoneyReg),"SellingService"+i);
+            Thread thread = new Thread(new SellingService(i),"SellingService"+i);
             threadList.add(thread);
             thread.start();
         }
         for (int i=1;i<=model.getJson_services().getInventroyServicesCount();i++){
-            Thread thread = new Thread(new InventoryService(i,output4Books),"InventoryService"+i);
+            Thread thread = new Thread(new InventoryService(i),"InventoryService"+i);
             threadList.add(thread);
             thread.start();
         }
@@ -78,9 +74,9 @@ public class BookStoreRunner {
         }
         {
             Thread thread = new Thread(TimeService.getInstance(model.getJson_services().getTime().getSpeed(),
-                    model.getJson_services().getTime().getDuration()), "TimeService");
+                    model.getJson_services().getTime().getDuration(),threadList.size()), "TimeService");
             threadList.add(thread);
-            thread.run();
+            thread.start();
         }
 
         try {
@@ -88,17 +84,45 @@ public class BookStoreRunner {
                 thread.join(); //waits for the thread to die
         }catch (Exception e){e.printStackTrace();}
 
-        //*****printing to file*******
-        //Receipts:
-        MoneyRegister.getInstance().printOrderReceipts(output4Receipts);
-        //Books:
-        Inventory.getInstance().printInventoryToFile(output4Books);
-        //customers:
-        new Printer<HashMap<Integer,Customer>>(output4Customers,customers2print).print();
-        //MoneyRegister:
-        new Printer<MoneyRegister>(output4MoneyReg,MoneyRegister.getInstance()).print();
+        /*
+            //*****Serialization*******
+            //Receipts:
+            MoneyRegister.getInstance().printOrderReceipts(output4Receipts);
+            //Books:
+            Inventory.getInstance().printInventoryToFile(output4Books);
+            //customers:
+            new Printer<HashMap<Integer,Customer>>(output4Customers,customers2print).print();
+            //MoneyRegister:
+            new Printer<MoneyRegister>(output4MoneyReg,MoneyRegister.getInstance()).print();
+        */
 
+        //Zilber's:
 
+        //int numOfTest = Integer.parseInt(args[0].replace(new File(args[0]).getParent(), "").replace("/", "").replace(".json", ""));
+        //int numOfTest = Integer.parseInt(jsonFilename.replace(new File(jsonFilename).getParent(), "").replace("/", "").replace(".json", ""));
+        int numOfTest = 6;
+        //String dir = new File(args[1]).getParent() + "/" + numOfTest + " - ";
+        String dir = new File(output4Customers).getParent() + "/" + numOfTest + " - ";
+        Customer[] customers1 = customers2print.values().toArray(new Customer[0]);
+        Arrays.sort(customers1, Comparator.comparing(Customer::getName));
+        //String str_custs = Arrays.toString(customers1);
+        String str_custs = customers2string(customers1);
+        str_custs = str_custs.replaceAll(", ", "\n---------------------------\n").replace("[", "").replace("]", "");
+        Print(str_custs, dir + "Customers");
+
+        String str_books = books2string(model.getInitialInventory());
+        str_books = str_books.replaceAll(", ", "\n---------------------------\n").replace("[", "").replace("]", "");
+        Print(str_books, dir + "Books");
+
+        List<OrderReceipt> receipts_lst = MoneyRegister.getInstance().getOrderReceipts();
+        receipts_lst.sort(Comparator.comparing(OrderReceipt::getOrderId));
+        receipts_lst.sort(Comparator.comparing(OrderReceipt::getOrderTick));
+        OrderReceipt[] receipts = receipts_lst.toArray(new OrderReceipt[0]);
+        String str_receipts = receipts2string(receipts);
+        str_receipts = str_receipts.replaceAll(", ", "\n---------------------------\n").replace("[", "").replace("]", "");
+        Print(str_receipts, dir + "Receipts");
+
+        Print(MoneyRegister.getInstance().getTotalEarnings() + "", dir + "Total");
 
 
         /*
@@ -149,10 +173,73 @@ public class BookStoreRunner {
         {
             System.out.println("ClassNotFoundException is caught");
         }
-
         */
-
-
-
     }
+
+
+    //Zilber's special addition:
+
+    public static String customers2string(Customer[] customers) {
+        String str = "";
+        for (Customer customer : customers)
+            str += customer2string(customer) + "\n---------------------------\n";
+        return str;
+    }
+
+    public static String customer2string(Customer customer) {
+        String str = "id    : " + customer.getId() + "\n";
+        str += "name  : " + customer.getName() + "\n";
+        str += "addr  : " + customer.getAddress() + "\n";
+        str += "dist  : " + customer.getDistance() + "\n";
+        str += "card  : " + customer.getCreditNumber() + "\n";
+        str += "money : " + customer.getAvailableCreditAmount();
+        return str;
+    }
+
+    public static String books2string(BookInventoryInfo[] books) {
+        String str = "";
+        for (BookInventoryInfo book : books)
+            str += book2string(book) + "\n---------------------------\n";
+        return str;
+    }
+
+    public static String book2string(BookInventoryInfo book) {
+        String str = "";
+        str += "title  : " + book.getBookTitle() + "\n";
+        str += "amount : " + book.getAmountInInventory() + "\n";
+        str += "price  : " + book.getPrice();
+        //str+="book title : "+book.getBookTitle();
+        return str;
+    }
+
+
+    public static String receipts2string(OrderReceipt[] receipts) {
+        String str = "";
+        for (OrderReceipt receipt : receipts)
+            str += receipt2string(receipt) + "\n---------------------------\n";
+        return str;
+    }
+    public static String receipt2string(OrderReceipt receipt) {
+        String str = "";
+        str += "customer   : " + receipt.getCustomerId() + "\n";
+        str += "order tick : " + receipt.getOrderTick() + "\n";
+        str += "id         : " + receipt.getOrderId() + "\n";
+        str += "price      : " + receipt.getPrice() + "\n";
+        str += "seller     : " + receipt.getSeller();
+        return str;
+    }
+
+    public static void Print(String str, String filename) {
+        try {
+            try (PrintStream out = new PrintStream(new FileOutputStream(filename))) {
+                out.print(str);
+            }
+        } catch (IOException e) {
+            System.out.println("Exception: " + e.getClass().getSimpleName());
+        }
+    }
+
+
+
+
 }

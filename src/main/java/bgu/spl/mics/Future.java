@@ -82,8 +82,8 @@ public class Future<T> {
 	public T get(long timeout, TimeUnit unit) {
 		synchronized (this) {
 			try {
-				while (!_isdone) {
-					this.wait(unit.toNanos(timeout));
+				if (!_isdone) { //TODO: might be if
+					this.wait(unit.toMillis(timeout));
 				}
 			} catch (InterruptedException e) {
 				System.out.println("got Interrupted");
