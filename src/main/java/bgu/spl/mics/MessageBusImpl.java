@@ -34,6 +34,8 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
+		//We didn't make a function for subscriveEvent that works also subscribeBroadcast because
+		//we didn't want to cast the Message to an event or a broadcast
 		if (handleMessages.containsKey(type)){
 			synchronized (handleMessages) {
 				handleMessages.get(type).add(m);
@@ -68,8 +70,6 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
-		if (!futures.containsKey(e))
-			System.out.println("futures has no such event");
 		futures.get(e).resolve(result);
 
 	}
@@ -81,8 +81,6 @@ public class MessageBusImpl implements MessageBus {
 				microServices.get(service).add(b);
 			}
 		}
-
-
 	}
 	
 	@Override
@@ -120,21 +118,7 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		//BlockingQueue<Message> temp=microServices.get(m);
-
-		/*
-		synchronized (this) {
-			while (temp.isEmpty()) {
-				this.wait();
-			}
-			//this.notifyAll();
-		}
-		*/
 		Message msg = microServices.get(m).take();
 		return msg;
-
 	}
-
-	
-
 }

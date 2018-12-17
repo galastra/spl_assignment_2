@@ -54,16 +54,8 @@ public class APIService extends MicroService{
 		}
 	}
 
-	/*
-	public List<OrderReceipt> getReceipts() {
-		return receipts;
-	}
-	*/
-
 	@Override
 	protected void initialize() {
-		System.out.println(getName()+" started");
-
 		subscribeBroadcast(TickBroadcast.class,broadcast->{
 			while (orderIdIndex.get() < schedules.size() && broadcast.getCurr_tick() == schedules.get(orderIdIndex.get()).getTick()) {
 				Future<OrderReceipt> receiptFuture = (Future<OrderReceipt>) sendEvent(new BookOrderEvent(schedules.get(orderIdIndex.get()).getBookTitle(),
@@ -79,7 +71,6 @@ public class APIService extends MicroService{
 					customer.getCustomerReceiptList().add(receipt);
 				}
 			}
-			System.out.println(getName()+" terminates");
 			terminate();
 		});
 		countDownLatch.countDown();

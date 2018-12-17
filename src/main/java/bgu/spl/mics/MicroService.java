@@ -161,7 +161,7 @@ public abstract class MicroService implements Runnable {
                Callback callback = callbacks.get(msg.getClass());
                callback.call(msg);
             }catch (Exception e){
-                //System.out.println("got caught while running the MicroService "+getName()+"\n error: "+e.toString());
+                System.out.println("got caught while running the MicroService "+getName()+"\n error: "+e.toString());
             }
         }
         bus.unregister(this);

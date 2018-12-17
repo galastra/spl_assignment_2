@@ -88,7 +88,6 @@ public class Future<T> {
 			} catch (InterruptedException e) {
 				System.out.println("got Interrupted");
 			}
-			//this.notifyAll();
 		}
 		return obj;
 	}
