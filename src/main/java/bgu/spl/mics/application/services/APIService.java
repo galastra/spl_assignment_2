@@ -3,7 +3,6 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.BookOrderEvent;
-import bgu.spl.mics.application.messages.ImHereBroadcast;
 import bgu.spl.mics.application.messages.LastTickBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 import bgu.spl.mics.application.passiveObjects.Customer;
@@ -11,6 +10,8 @@ import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 import bgu.spl.mics.application.passiveObjects.OrderSchedule;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -26,21 +27,18 @@ public class APIService extends MicroService{
 	private List<OrderSchedule> schedules;
 	private Customer customer;
 	private List<Future<OrderReceipt>> futures;
-	private List<OrderReceipt> receipts;
 
 	private AtomicInteger orderIdIndex;
 	private static AtomicInteger orderReceiptId;
 
-	/**I added it because the OrderId field in OrderSchedule has nothing to do with
-	//the actual order id because we do not get it from the json file but it's the id
-	corresponding to the order id in the list
-	 **/
+	private CountDownLatch countDownLatch;
 
-	public APIService(int id,List<OrderSchedule> _schedules,Customer _customer) {
+
+	public APIService(int id, List<OrderSchedule> _schedules, Customer _customer, CountDownLatch countDownLatch) {
 		super("API Service "+id);
 
+		this.countDownLatch = countDownLatch;
 		this.futures=new ArrayList<>();
-		this.receipts=new ArrayList<>();
 		this.customer=_customer;
 		orderReceiptId = new AtomicInteger(0);
 		orderIdIndex = new AtomicInteger(0);
@@ -56,15 +54,15 @@ public class APIService extends MicroService{
 		}
 	}
 
+	/*
 	public List<OrderReceipt> getReceipts() {
 		return receipts;
 	}
+	*/
 
 	@Override
 	protected void initialize() {
 		System.out.println(getName()+" started");
-
-		sendBroadcast(new ImHereBroadcast());
 
 		subscribeBroadcast(TickBroadcast.class,broadcast->{
 			while (orderIdIndex.get() < schedules.size() && broadcast.getCurr_tick() == schedules.get(orderIdIndex.get()).getTick()) {
@@ -74,17 +72,17 @@ public class APIService extends MicroService{
 				orderIdIndex.incrementAndGet();
 			}
 		});
-
 		subscribeBroadcast(LastTickBroadcast.class,lastickCallback->{
 			for (Future<OrderReceipt> tempFuture: futures) {
-				if (tempFuture.get() != null) { //TODO:figure out if a null receipt must be in the receipts
-					receipts.add(tempFuture.get());
-					customer.getCustomerReceiptList().add(tempFuture.get());
+				OrderReceipt receipt = tempFuture.get(1,TimeUnit.MILLISECONDS);
+				if (receipt != null) {
+					customer.getCustomerReceiptList().add(receipt);
 				}
 			}
 			System.out.println(getName()+" terminates");
 			terminate();
 		});
+		countDownLatch.countDown();
 
 
 	}

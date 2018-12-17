@@ -1,13 +1,12 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.application.messages.ImHereBroadcast;
 import bgu.spl.mics.application.messages.LastTickBroadcast;
 import bgu.spl.mics.application.messages.TickBroadcast;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -27,37 +26,32 @@ public class TimeService extends MicroService{
 	private static AtomicInteger tick;
 	private int speed;
 	private int duration;
-	private int servicesCount;
 
-	public static TimeService getInstance(int _speed,int _duration,int _servicesCount){
+	private CountDownLatch countDownLatch;
+	private Timer timer;
+	private TimerTask timerTask;
+
+	public static TimeService getInstance(int _speed,int _duration,int _servicesCount,CountDownLatch countDownLatch){
 		TimeService result = instance;
 		if (result == null){
 			synchronized (mutex){
 				result = instance;
 				if (result == null){
-					instance = result = new TimeService(_speed,_duration,_servicesCount);
+					instance = result = new TimeService(_speed,_duration,_servicesCount,countDownLatch);
 				}
 			}
 		}
 		return result;
 	}
 
-	private TimeService(int _speed,int _duration,int _servicesCount) {
+	private TimeService(int _speed,int _duration,int _servicesCount,CountDownLatch countDownLatch) {
 		super("Time Service");
 		speed = _speed;
 		duration = _duration;
-		servicesCount = _servicesCount;
-	}
+		this.countDownLatch = countDownLatch;
 
-	@Override
-	protected void initialize() {
-		try {
-			//Thread.sleep(TimeUnit.SECONDS.toMillis(1));
-			while (servicesCount!=0) this.wait();
-		}catch (Exception e){}
-		tick = new AtomicInteger(1);
-		Timer timer = new Timer();
-		TimerTask timerTask = new TimerTask() {
+		timer = new Timer();
+		timerTask = new TimerTask() {
 			@Override
 			public void run() {
 				System.out.println("sending tick "+tick.get());
@@ -69,13 +63,19 @@ public class TimeService extends MicroService{
 				}
 			}
 		};
-		timer.scheduleAtFixedRate(timerTask,0,speed);
+	}
 
-		subscribeBroadcast(ImHereBroadcast.class,brod->{
-			servicesCount--;
-			if (servicesCount == 0)
-				this.notifyAll();
-		});
+	@Override
+	protected void initialize() {
+		tick = new AtomicInteger(1);
+
+			try {
+				countDownLatch.await();
+				timer.scheduleAtFixedRate(timerTask, 0, speed);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+
 
 		subscribeBroadcast(LastTickBroadcast.class,brod->{
 			//System.out.println(getName()+" terminates");

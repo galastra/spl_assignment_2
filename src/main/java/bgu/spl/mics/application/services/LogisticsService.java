@@ -5,6 +5,7 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -18,10 +19,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class LogisticsService extends MicroService {
 	private int durationInMillis;
+	private CountDownLatch countDownLatch;
 
-	public LogisticsService(int id) {
+	public LogisticsService(int id,CountDownLatch countDownLatch) {
 		super("Logistics Service " + id);
 		durationInMillis = 0;
+		this.countDownLatch = countDownLatch;
 
 	}
 
@@ -29,11 +32,10 @@ public class LogisticsService extends MicroService {
 	protected void initialize() {
 		System.out.println(getName()+" started");
 
-		sendBroadcast(new ImHereBroadcast());
 
 		subscribeEvent(DeliveryEvent.class,ev->{
 			Future<Future<DeliveryVehicle>> futureDeliveryVehicle=sendEvent(new AcquireVehicleEvent());
-			DeliveryVehicle deliveryVehicle = futureDeliveryVehicle.get().get(durationInMillis, TimeUnit.MILLISECONDS);
+			DeliveryVehicle deliveryVehicle = futureDeliveryVehicle.get(durationInMillis, TimeUnit.MILLISECONDS).get(durationInMillis, TimeUnit.MILLISECONDS);
 			if (deliveryVehicle != null) {
 				deliveryVehicle.deliver(ev.getAddress(), ev.getDistance());
 				sendBroadcast(new ReleaseVehicleBroadcast(deliveryVehicle));
@@ -48,6 +50,7 @@ public class LogisticsService extends MicroService {
 			System.out.println(getName()+" terminates");
 			terminate();
 		});
+		countDownLatch.countDown();
 	}
 
 }

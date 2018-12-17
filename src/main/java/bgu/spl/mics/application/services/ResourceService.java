@@ -3,11 +3,12 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.messages.AcquireVehicleEvent;
-import bgu.spl.mics.application.messages.ImHereBroadcast;
 import bgu.spl.mics.application.messages.LastTickBroadcast;
 import bgu.spl.mics.application.messages.ReleaseVehicleBroadcast;
 import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * ResourceService is in charge of the store resources - the delivery vehicles.
@@ -20,17 +21,17 @@ import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
  */
 public class ResourceService extends MicroService{
 	private ResourcesHolder resourcesHolder;
+	private CountDownLatch countDownLatch;
 
-	public ResourceService(int id) {
+	public ResourceService(int id,CountDownLatch countDownLatch) {
 		super("Resource Service "+id);
 		resourcesHolder=ResourcesHolder.getInstance();
+		this.countDownLatch = countDownLatch;
 	}
 
 	@Override
 	protected void initialize() {
 		System.out.println(getName() +" started");
-
-		sendBroadcast(new ImHereBroadcast());
 
 		subscribeEvent(AcquireVehicleEvent.class,ev->{
 			//should return the future<Vehicle>? YES
@@ -48,6 +49,7 @@ public class ResourceService extends MicroService{
 			System.out.println(getName() +" terminates");
 			terminate();
 		});
+		countDownLatch.countDown();
 
 	}
 

@@ -3,6 +3,8 @@ package bgu.spl.mics.application.passiveObjects;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import bgu.spl.mics.application.passiveObjects.Models.JSON_Services.CreditCard;
 
 /**
@@ -97,9 +99,7 @@ public class Customer implements Serializable {
 	 * @param amount the amount
 	 */
 	public void chargeCredit(int amount){
-		synchronized (this) {
-			available_amount_credit_card -= amount;
-		}
+		available_amount_credit_card-= amount;
 	}
 
 	public void setCreditCard(CreditCard card){

@@ -7,6 +7,7 @@ import bgu.spl.mics.application.passiveObjects.MoneyRegister;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 import bgu.spl.mics.application.passiveObjects.OrderResult;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -23,11 +24,13 @@ public class SellingService extends MicroService{
     private MoneyRegister moneyRegister;
     private int curr_tick;
     private int durationInMillis;
+    private CountDownLatch countDownLatch;
 
-    public SellingService(int id) {
+    public SellingService(int id,CountDownLatch countDownLatch) {
         super("Selling Service "+id);
         moneyRegister = MoneyRegister.getInstance();
         durationInMillis = 0;
+        this.countDownLatch = countDownLatch;
     }
 
     private int getCurr_tick(){return curr_tick;}
@@ -35,7 +38,6 @@ public class SellingService extends MicroService{
     @Override
     protected void initialize() {
         System.out.println("Selling Service "+getName()+" started");
-        sendBroadcast(new ImHereBroadcast());
         curr_tick = 0;
 
         subscribeBroadcast(TickBroadcast.class,broad->{
@@ -59,7 +61,13 @@ public class SellingService extends MicroService{
                 Integer priceResult = futureBookPrice.get(durationInMillis, TimeUnit.MILLISECONDS); //get the price from the InventoryService
 
                 if (priceResult==null || priceResult==-1 || ev.getCustomer().getAvailableCreditAmount()<priceResult){
-                    System.out.println("not enough money or the book does not exist");
+                    if (priceResult == -1)
+                        System.out.println("book "+ev.getBookTitle()+" not found");
+                    if (priceResult == null)
+                        System.out.println("future.get returned null due to overtime");
+                    if (ev.getCustomer().getAvailableCreditAmount()<priceResult)
+                        System.out.println(ev.getCustomer().getName()+" has "+ev.getCustomer().getAvailableCreditAmount()
+                                +" but "+ev.getBookTitle()+" costs "+priceResult);
                     complete(ev,null);
                 }
                 else{
@@ -74,34 +82,36 @@ public class SellingService extends MicroService{
                     //int processTick has been resolved
                     //
 
-                    Future<OrderResult> futureOrderResult = (Future<OrderResult>)sendEvent(new TakeBookEvent(bookTitle));
-                    if (futureOrderResult == null){
-                        System.out.println("No Micro-Service has registered to handle TakeBookEvent events! The event cannot be processed");
-                    }
-                    if (futureOrderResult != null){
-                        OrderResult orderResult = futureOrderResult.get(durationInMillis,TimeUnit.MILLISECONDS);
-
-                        if (orderResult == OrderResult.SUCCESSFULLY_TAKEN){
-                            System.out.println("book has been successfully taken");
-                            moneyRegister.chargeCreditCard(ev.getCustomer(),priceResult);
-                            int issuedTick = getCurr_tick();
-                            OrderReceipt receipt = new OrderReceipt(orderid,seller,customer,bookTitle,price,issuedTick,orderTick,processTick);
-                            complete(ev,receipt);
-                            moneyRegister.file(receipt);
-                            sendEvent(new DeliveryEvent(ev.getCustomer().getDistance(),ev.getCustomer().getAddress()));
+                    synchronized (ev.getCustomer()) {//billing and taking a book should be in synch
+                        Future<OrderResult> futureOrderResult = (Future<OrderResult>) sendEvent(new TakeBookEvent(bookTitle));
+                        if (futureOrderResult == null) {
+                            System.out.println("No Micro-Service has registered to handle TakeBookEvent events! The event cannot be processed");
                         }
-                        else {
-                            complete(ev, null);
-                            System.out.println("SellingService tried to get the book but in the meanwhile it has been taken by someone else");
+
+                        if (futureOrderResult != null) {
+                            OrderResult orderResult = futureOrderResult.get(durationInMillis, TimeUnit.MILLISECONDS);
+
+                            if (ev.getCustomer().getAvailableCreditAmount() >= priceResult && orderResult == OrderResult.SUCCESSFULLY_TAKEN) {
+                                moneyRegister.chargeCreditCard(ev.getCustomer(), priceResult);
+                                System.out.println(ev.getBookTitle() + " has been successfully taken by "+getName()+" and " + ev.getCustomer().getName()
+                                        + " got charged " + priceResult+ " order id="+orderid);
+                                int issuedTick = getCurr_tick();
+                                OrderReceipt receipt = new OrderReceipt(orderid, seller, customer, bookTitle, price, issuedTick, orderTick, processTick);
+                                complete(ev, receipt);
+                                moneyRegister.file(receipt);
+                                sendEvent(new DeliveryEvent(ev.getCustomer().getDistance(), ev.getCustomer().getAddress()));
+                            } else {
+                                complete(ev, null);
+                                System.out.println("SellingService tried to get the book but in the meanwhile it has been taken by someone else");
+                            }
                         }
                     }
-
                 }
             }
 
         });
         System.out.println("Selling Service "+getName()+" started 100%");
-
+        countDownLatch.countDown();
      }
 
 }
